@@ -17,17 +17,20 @@ import {
   CheckCircle2,
   Compass,
   Wallet,
-  TrendingUp
+  TrendingUp,
+  FileText
 } from 'lucide-react';
 import { useTrips } from '../../context/TripContext';
 import { StopModal } from '../trip-studio/StopModal';
 import { ActivityPlanner } from '../ActivityPlanner';
 import { BudgetDashboard } from '../BudgetDashboard';
+import { ExportPdfButton } from '../ExportPdfButton';
+import { PrintableTripDocument } from '../PrintableTripDocument';
 
 export function TripDetailShell({ trip, onBack }) {
   const { deleteTrip, addStop, updateStop, deleteStop, moveStop } = useTrips();
 
-  const [activeView, setActiveView] = useState('timeline'); // 'timeline' | 'cards' | 'budget'
+  const [activeView, setActiveView] = useState('timeline'); // 'timeline' | 'cards' | 'budget' | 'print'
   const [isStopModalOpen, setIsStopModalOpen] = useState(false);
   const [editingStop, setEditingStop] = useState(null);
 
@@ -130,7 +133,10 @@ export function TripDetailShell({ trip, onBack }) {
           <span>Back to Dashboard</span>
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {/* Hour 6: Export PDF & Print Button */}
+          <ExportPdfButton trip={trip} printTargetId="printable-trip-document" />
+
           <button
             onClick={handleOpenAddStop}
             className="btn btn-primary btn-sm"
@@ -420,11 +426,17 @@ export function TripDetailShell({ trip, onBack }) {
       >
         <div>
           <h2 style={{ fontSize: '1.35rem', color: '#ffffff', margin: 0 }}>
-            {activeView === 'budget' ? 'Trip Budget & Expense Tracker' : 'Multi-City Itinerary & Route Flow'}
+            {activeView === 'budget'
+              ? 'Trip Budget & Expense Tracker'
+              : activeView === 'print'
+              ? 'Printable Trip Document & PDF Manifest'
+              : 'Multi-City Itinerary & Route Flow'}
           </h2>
           <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '3px 0 0 0' }}>
             {activeView === 'budget'
               ? 'Real-time multi-currency expense ledger, category breakdown, and financial health alerts.'
+              : activeView === 'print'
+              ? 'Clean formatted printable itinerary ready for PDF download or Ctrl + P printing.'
               : 'Sequential timeline of stops. Use Move Up (↑) / Down (↓) to reorder cities.'}
           </p>
         </div>
@@ -454,12 +466,22 @@ export function TripDetailShell({ trip, onBack }) {
             <Wallet size={14} />
             <span>Budget & Expenses</span>
           </button>
+          <button
+            onClick={() => setActiveView('print')}
+            className={`btn btn-sm ${activeView === 'print' ? 'btn-primary' : 'btn-ghost'}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem' }}
+          >
+            <FileText size={14} />
+            <span>Print / PDF Manifest</span>
+          </button>
         </div>
       </div>
 
-      {/* Main View Content: Budget Dashboard vs Stops Views */}
+      {/* Main View Content: Budget Dashboard vs Print View vs Stops Views */}
       {activeView === 'budget' ? (
         <BudgetDashboard trip={trip} />
+      ) : activeView === 'print' ? (
+        <PrintableTripDocument trip={trip} />
       ) : stops.length > 0 ? (
         activeView === 'timeline' ? (
           /* Sequential Timeline View */
@@ -838,6 +860,13 @@ export function TripDetailShell({ trip, onBack }) {
         onSave={handleSaveStop}
         initialData={editingStop}
       />
+
+      {/* Off-screen Document for 1-Click PDF Snapshot when not on Print tab */}
+      {activeView !== 'print' && (
+        <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '900px', pointerEvents: 'none' }} aria-hidden="true">
+          <PrintableTripDocument trip={trip} />
+        </div>
+      )}
     </div>
   );
 }

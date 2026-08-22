@@ -1,9 +1,11 @@
 import React from 'react';
-import { Compass, Sparkles, LogOut, ShieldCheck } from 'lucide-react';
+import { Compass, Sparkles, LogOut, ShieldCheck, Wifi, WifiOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useOfflineStatus } from '../services/offlineService';
 
 export function Navbar({ onNavigateHome }) {
   const { currentUser, logout, loginAsDemo } = useAuth();
+  const { isOnline } = useOfflineStatus();
 
   return (
     <header
@@ -25,7 +27,8 @@ export function Navbar({ onNavigateHome }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '1rem'
+          gap: '1rem',
+          flexWrap: 'wrap'
         }}
       >
         {/* Brand */}
@@ -73,13 +76,63 @@ export function Navbar({ onNavigateHome }) {
                   border: '1px solid rgba(56, 189, 248, 0.3)'
                 }}
               >
-                HOUR 2
+                TRAVEL STUDIO
               </span>
             </div>
             <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              Travel Planning & Itinerary Studio
+              Intelligent Multi-City Itinerary & Expense Planner
             </p>
           </div>
+        </div>
+
+        {/* Middle: Connection Status Indicator Badge */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 12px',
+            borderRadius: 'var(--radius-full)',
+            background: isOnline ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.15)',
+            border: isOnline ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(245, 158, 11, 0.4)',
+            transition: 'all 0.3s ease'
+          }}
+          title={isOnline ? 'Online: All data syncs seamlessly to your local storage' : 'Offline Mode: You can keep editing trips, stops, and expenses safely. Everything is stored in local cache.'}
+        >
+          {isOnline ? (
+            <>
+              <div
+                style={{
+                  width: '7px',
+                  height: '7px',
+                  borderRadius: '50%',
+                  background: '#10b981',
+                  boxShadow: '0 0 8px #10b981'
+                }}
+              />
+              <Wifi size={13} color="#10b981" />
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6ee7b7' }}>
+                Online Sync Active
+              </span>
+            </>
+          ) : (
+            <>
+              <div
+                style={{
+                  width: '7px',
+                  height: '7px',
+                  borderRadius: '50%',
+                  background: '#f59e0b',
+                  boxShadow: '0 0 8px #f59e0b',
+                  animation: 'pulse 1.5s infinite'
+                }}
+              />
+              <WifiOff size={13} color="#f59e0b" />
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fcd34d' }}>
+                Offline Mode • Cache Protected
+              </span>
+            </>
+          )}
         </div>
 
         {/* User Controls */}
