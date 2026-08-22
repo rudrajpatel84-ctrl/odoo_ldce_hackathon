@@ -1,5 +1,5 @@
-import { hashPassword, verifyPassword } from './crypto';
-import { INITIAL_TRIPS } from './mockData';
+import { hashPassword, verifyPassword } from './crypto.js';
+import { INITIAL_TRIPS } from './mockData.js';
 
 const STORAGE_KEY_USERS = 'globetrotter_users_v1';
 const STORAGE_KEY_AUTH = 'globetrotter_auth_session_v1';
