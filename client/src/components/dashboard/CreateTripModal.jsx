@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { X, Compass, Calendar, DollarSign, AlertCircle, Sparkles, MapPin } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { useTrips } from '../../context/TripContext';
 import { MultiCityStopForm } from '../trip-studio/MultiCityStopForm';
 
 export function CreateTripModal({ isOpen, onClose }) {
+  const { currentUser } = useAuth();
   const { createTrip } = useTrips();
 
   const getTodayString = () => new Date().toISOString().split('T')[0];
@@ -13,12 +15,13 @@ export function CreateTripModal({ isOpen, onClose }) {
     return d.toISOString().split('T')[0];
   };
 
+  const defaultCurr = currentUser?.preferredCurrency || 'INR';
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState(getTodayString());
   const [endDate, setEndDate] = useState(getDefaultEndString());
-  const [totalBudget, setTotalBudget] = useState('2500');
-  const [currency, setCurrency] = useState('USD');
+  const [totalBudget, setTotalBudget] = useState(defaultCurr === 'INR' ? '25000' : '2500');
+  const [currency, setCurrency] = useState(defaultCurr);
   const [stops, setStops] = useState([]);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -196,6 +199,7 @@ export function CreateTripModal({ isOpen, onClose }) {
                   className="form-input"
                   style={{ cursor: 'pointer' }}
                 >
+                  <option value="INR">INR (₹)</option>
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                   <option value="GBP">GBP (£)</option>

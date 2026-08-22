@@ -190,13 +190,13 @@ export function NewTripModal({ isOpen, onClose, onCreateTrip }) {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
               <div className="form-group">
-                <label className="form-label">Trip Title *</label>
+                <label className="form-label">Voyage Title *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., European Summer Tour 2026"
+                  placeholder="e.g. Gujarat Coastal Expedition / Tokyo to Kyoto Express"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="form-input"
@@ -206,15 +206,15 @@ export function NewTripModal({ isOpen, onClose, onCreateTrip }) {
               <div className="form-group">
                 <label className="form-label">Description / Theme</label>
                 <textarea
-                  rows={2}
-                  placeholder="Briefly describe what this trip is about..."
+                  rows="2"
+                  placeholder="Describe your travel vision, primary goals, or vibe..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="form-textarea"
                 />
               </div>
 
-              {/* Dates */}
+              {/* Dates Row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Start Date</label>
@@ -236,22 +236,19 @@ export function NewTripModal({ isOpen, onClose, onCreateTrip }) {
                 </div>
               </div>
 
-              {/* Budget & Currency */}
+              {/* Budget Row */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Total Target Budget</label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type="number"
-                      min="0"
-                      step="50"
-                      value={totalBudget}
-                      onChange={(e) => setTotalBudget(e.target.value)}
-                      className="form-input"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500"
+                    value={totalBudget}
+                    onChange={(e) => setTotalBudget(e.target.value)}
+                    className="form-input"
+                  />
                 </div>
-
                 <div className="form-group">
                   <label className="form-label">Currency</label>
                   <select
@@ -259,6 +256,7 @@ export function NewTripModal({ isOpen, onClose, onCreateTrip }) {
                     onChange={(e) => setCurrency(e.target.value)}
                     className="form-select"
                   >
+                    <option value="INR">INR (₹)</option>
                     <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>
                     <option value="GBP">GBP (£)</option>

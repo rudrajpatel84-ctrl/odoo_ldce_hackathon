@@ -68,8 +68,9 @@ export function TripDetailShell({ trip, onBack }) {
     return `${s} – ${e}`;
   };
 
-  const formatCurrency = (amount, currency = 'USD') => {
+  const formatCurrency = (amount, currency = trip?.currency || 'INR') => {
     const symbols = {
+      INR: '₹',
       USD: '$',
       EUR: '€',
       GBP: '£',
@@ -77,7 +78,7 @@ export function TripDetailShell({ trip, onBack }) {
       CAD: 'CA$',
       AUD: 'A$'
     };
-    const symbol = symbols[currency] || '$';
+    const symbol = symbols[currency] || (currency === 'INR' ? '₹' : '$');
     return `${symbol}${Number(amount || 0).toLocaleString()}`;
   };
 

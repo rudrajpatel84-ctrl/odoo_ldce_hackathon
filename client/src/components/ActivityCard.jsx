@@ -92,8 +92,8 @@ export function ActivityCard({
   const formatCost = (val, curr) => {
     const num = Number(val) || 0;
     if (num <= 0) return 'Free';
-    const symMap = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: 'CA$', AUD: 'A$' };
-    const sym = symMap[curr] || '$';
+    const symMap = { INR: '₹', USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: 'CA$', AUD: 'A$' };
+    const sym = symMap[curr] || (curr === 'INR' ? '₹' : '$');
     return `${sym}${num.toLocaleString()}`;
   };
 

@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTrips } from '../../context/TripContext';
 import { TripCard } from './TripCard';
 import { CreateTripModal } from './CreateTripModal';
+import { budgetService } from '../../services/budgetService';
 
 export function Dashboard({ onOpenTrip }) {
   const { currentUser } = useAuth();
@@ -11,13 +12,18 @@ export function Dashboard({ onOpenTrip }) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const userCurrency = currentUser?.preferredCurrency || 'INR';
+
   const filteredTrips = trips.filter(t =>
     t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  // Compute summary metrics across user's trips
-  const totalBudgetSum = trips.reduce((sum, t) => sum + (Number(t.totalBudget) || 0), 0);
+  // Compute summary metrics across user's trips in preferred currency
+  const totalBudgetSum = trips.reduce((sum, t) => {
+    const rawBudget = Number(t.totalBudget) || 0;
+    return sum + budgetService.convertCurrency(rawBudget, t.currency || 'INR', userCurrency);
+  }, 0);
 
   return (
     <div className="app-container">
@@ -113,10 +119,10 @@ export function Dashboard({ onOpenTrip }) {
             </div>
             <div>
               <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#10b981', lineHeight: 1.1 }}>
-                ${totalBudgetSum.toLocaleString()}
+                {budgetService.formatCurrency(totalBudgetSum, userCurrency)}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Total Budget Allocated
+                Total Budget ({userCurrency})
               </div>
             </div>
           </div>

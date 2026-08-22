@@ -188,8 +188,8 @@ export function ActivityPlanner({
   };
 
   const formatCurrency = (amount) => {
-    const symMap = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: 'CA$', AUD: 'A$' };
-    const sym = symMap[currency] || '$';
+    const symMap = { INR: '₹', USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: 'CA$', AUD: 'A$' };
+    const sym = symMap[currency] || (currency === 'INR' ? '₹' : '$');
     return `${sym}${Number(amount || 0).toLocaleString()}`;
   };
 
