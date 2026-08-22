@@ -1039,6 +1039,196 @@ export const storageService = {
 
     localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
     return trip;
+  },
+
+  /**
+   * Transport & Accommodation Logistics Layer (Hour 8)
+   */
+  async setStopAccommodation(tripId, stopId, accData, userId) {
+    if (!tripId || !stopId || !userId) throw new Error('Trip ID, stop ID, and user authentication required.');
+
+    // 1. Try real backend
+    if (api.getToken()) {
+      try {
+        const data = await api.put(`/trips/${tripId}/stops/${stopId}/accommodation`, accData);
+        if (data?.accommodation) {
+          await this.getTrips(userId);
+          return data.accommodation;
+        }
+      } catch (err) {
+        console.warn('Backend setStopAccommodation failed, falling back:', err.message);
+      }
+    }
+
+    // 2. Offline fallback
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => (t.id === tripId || t._id === tripId) && (t.userId === userId || t.userId === 'user-demo-1'));
+    if (!trip || !trip.stops) throw new Error('Trip or stops not found.');
+
+    const stop = trip.stops.find(s => s.id === stopId);
+    if (!stop) throw new Error('Stop not found.');
+
+    stop.accommodation = {
+      id: stop.accommodation?.id || `acc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      hotelName: (accData.hotelName || '').trim(),
+      checkInDate: accData.checkInDate || stop.arrivalDate,
+      checkOutDate: accData.checkOutDate || stop.departureDate,
+      confirmationCode: (accData.confirmationCode || '').trim(),
+      cost: Number(accData.cost) || 0,
+      currency: accData.currency || trip.currency || 'INR',
+      address: (accData.address || '').trim(),
+      isConfirmed: Boolean(accData.isConfirmed),
+      notes: (accData.notes || '').trim()
+    };
+
+    trip.updatedAt = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return stop.accommodation;
+  },
+
+  async addTransport(tripId, transportData, userId) {
+    if (!tripId || !userId) throw new Error('Trip ID and user authentication required.');
+
+    // 1. Try real backend
+    if (api.getToken()) {
+      try {
+        const data = await api.post(`/trips/${tripId}/transports`, transportData);
+        if (data?.transport) {
+          await this.getTrips(userId);
+          return data.transport;
+        }
+      } catch (err) {
+        console.warn('Backend addTransport failed, falling back:', err.message);
+      }
+    }
+
+    // 2. Offline fallback
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => (t.id === tripId || t._id === tripId) && (t.userId === userId || t.userId === 'user-demo-1'));
+    if (!trip) throw new Error('Trip not found.');
+
+    if (!Array.isArray(trip.transports)) {
+      trip.transports = [];
+    }
+
+    const newTransport = {
+      id: transportData.id || `trn-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      mode: transportData.mode || 'Train / Rail',
+      fromCity: (transportData.fromCity || '').trim(),
+      toCity: (transportData.toCity || '').trim(),
+      carrier: (transportData.carrier || '').trim(),
+      referenceNumber: (transportData.referenceNumber || '').trim(),
+      departureTime: transportData.departureTime || '',
+      arrivalTime: transportData.arrivalTime || '',
+      cost: Number(transportData.cost) || 0,
+      currency: transportData.currency || trip.currency || 'INR',
+      isBooked: Boolean(transportData.isBooked),
+      notes: (transportData.notes || '').trim()
+    };
+
+    trip.transports.push(newTransport);
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return newTransport;
+  },
+
+  async updateTransport(tripId, transportId, transportData, userId) {
+    if (!tripId || !transportId || !userId) throw new Error('Trip ID, transport ID, and user authentication required.');
+
+    // 1. Try real backend
+    if (api.getToken()) {
+      try {
+        const data = await api.put(`/trips/${tripId}/transports/${transportId}`, transportData);
+        if (data?.transport) {
+          await this.getTrips(userId);
+          return data.transport;
+        }
+      } catch (err) {
+        console.warn(`Backend updateTransport ${transportId} failed, falling back:`, err.message);
+      }
+    }
+
+    // 2. Offline fallback
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => (t.id === tripId || t._id === tripId) && (t.userId === userId || t.userId === 'user-demo-1'));
+    if (!trip || !Array.isArray(trip.transports)) throw new Error('Trip or transports not found.');
+
+    const transport = trip.transports.find(t => t.id === transportId);
+    if (!transport) throw new Error('Transport not found.');
+
+    if (transportData.mode !== undefined) transport.mode = transportData.mode;
+    if (transportData.fromCity !== undefined) transport.fromCity = (transportData.fromCity || '').trim();
+    if (transportData.toCity !== undefined) transport.toCity = (transportData.toCity || '').trim();
+    if (transportData.carrier !== undefined) transport.carrier = (transportData.carrier || '').trim();
+    if (transportData.referenceNumber !== undefined) transport.referenceNumber = (transportData.referenceNumber || '').trim();
+    if (transportData.departureTime !== undefined) transport.departureTime = transportData.departureTime;
+    if (transportData.arrivalTime !== undefined) transport.arrivalTime = transportData.arrivalTime;
+    if (transportData.cost !== undefined) transport.cost = Number(transportData.cost) || 0;
+    if (transportData.currency !== undefined) transport.currency = transportData.currency;
+    if (transportData.isBooked !== undefined) transport.isBooked = Boolean(transportData.isBooked);
+    if (transportData.notes !== undefined) transport.notes = (transportData.notes || '').trim();
+
+    trip.updatedAt = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return transport;
+  },
+
+  async deleteTransport(tripId, transportId, userId) {
+    if (!tripId || !transportId || !userId) return false;
+
+    // 1. Try real backend
+    if (api.getToken()) {
+      try {
+        await api.delete(`/trips/${tripId}/transports/${transportId}`);
+        await this.getTrips(userId);
+        return true;
+      } catch (err) {
+        console.warn(`Backend deleteTransport ${transportId} failed, falling back:`, err.message);
+      }
+    }
+
+    // 2. Offline fallback
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => (t.id === tripId || t._id === tripId) && (t.userId === userId || t.userId === 'user-demo-1'));
+    if (!trip || !Array.isArray(trip.transports)) return false;
+
+    trip.transports = trip.transports.filter(t => t.id !== transportId);
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return true;
+  },
+
+  async toggleTransportBooking(tripId, transportId, userId) {
+    if (!tripId || !transportId || !userId) throw new Error('Parameters required to toggle transport booking.');
+
+    // 1. Try real backend
+    if (api.getToken()) {
+      try {
+        const data = await api.patch(`/trips/${tripId}/transports/${transportId}/toggle-booking`);
+        if (data?.transport) {
+          await this.getTrips(userId);
+          return data.transport;
+        }
+      } catch (err) {
+        console.warn('Backend toggleTransportBooking failed, falling back:', err.message);
+      }
+    }
+
+    // 2. Offline fallback
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => (t.id === tripId || t._id === tripId) && (t.userId === userId || t.userId === 'user-demo-1'));
+    if (!trip || !Array.isArray(trip.transports)) throw new Error('Trip or transports not found.');
+
+    const transport = trip.transports.find(t => t.id === transportId);
+    if (!transport) throw new Error('Transport not found.');
+
+    transport.isBooked = !transport.isBooked;
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return transport;
   }
 };
 

@@ -18,6 +18,11 @@ const {
   updateExpense,
   deleteExpense,
   setTripBudget,
+  setStopAccommodation,
+  addTransport,
+  updateTransport,
+  deleteTransport,
+  toggleTransportBooking,
 } = require("../controllers/tripController");
 const authMiddleware = require("../middleware/authMiddleware");
 
@@ -41,11 +46,20 @@ router.put("/:tripId/stops/reorder", reorderStops);
 router.put("/:tripId/stops/:stopId", updateStop);
 router.delete("/:tripId/stops/:stopId", deleteStop);
 
+// Stop Accommodation Routes
+router.put("/:tripId/stops/:stopId/accommodation", setStopAccommodation);
+
 // Activity Management Routes
 router.post("/:tripId/stops/:stopId/activities", addActivity);
 router.put("/:tripId/stops/:stopId/activities/:activityId", updateActivity);
 router.delete("/:tripId/stops/:stopId/activities/:activityId", deleteActivity);
 router.patch("/:tripId/stops/:stopId/activities/:activityId/toggle-booking", toggleActivityBooking);
+
+// Inter-city Transport Logistics Routes
+router.post("/:tripId/transports", addTransport);
+router.put("/:tripId/transports/:transportId", updateTransport);
+router.delete("/:tripId/transports/:transportId", deleteTransport);
+router.patch("/:tripId/transports/:transportId/toggle-booking", toggleTransportBooking);
 
 // Expense & Budget Management Routes
 router.post("/:tripId/expenses", addExpense);

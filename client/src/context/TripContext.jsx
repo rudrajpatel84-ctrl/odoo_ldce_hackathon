@@ -283,6 +283,75 @@ export function TripProvider({ children }) {
     }
   };
 
+  // --- Logistics & Accommodation Actions (Hour 8) ---
+  const setStopAccommodation = async (tripId, stopId, accData) => {
+    if (!currentUser) return null;
+    try {
+      const updated = await storageService.setStopAccommodation(tripId, stopId, accData, currentUser.id);
+      await refreshTrips();
+      showToast(`Stay details updated: ${updated.hotelName || 'Accommodation'}`);
+      return updated;
+    } catch (err) {
+      showToast(err.message || 'Failed to update accommodation.', 'error');
+      throw err;
+    }
+  };
+
+  const addTransport = async (tripId, transportData) => {
+    if (!currentUser) return null;
+    try {
+      const newTrn = await storageService.addTransport(tripId, transportData, currentUser.id);
+      await refreshTrips();
+      showToast(`Transit added: ${newTrn.mode} (${newTrn.fromCity || ''} ➔ ${newTrn.toCity || ''})`);
+      return newTrn;
+    } catch (err) {
+      showToast(err.message || 'Failed to add transport.', 'error');
+      throw err;
+    }
+  };
+
+  const updateTransport = async (tripId, transportId, transportData) => {
+    if (!currentUser) return null;
+    try {
+      const updated = await storageService.updateTransport(tripId, transportId, transportData, currentUser.id);
+      await refreshTrips();
+      showToast('Transport segment updated.');
+      return updated;
+    } catch (err) {
+      showToast(err.message || 'Failed to update transport.', 'error');
+      throw err;
+    }
+  };
+
+  const deleteTransport = async (tripId, transportId) => {
+    if (!currentUser) return false;
+    try {
+      const success = await storageService.deleteTransport(tripId, transportId, currentUser.id);
+      if (success) {
+        await refreshTrips();
+        showToast('Transport segment removed.', 'info');
+      }
+      return success;
+    } catch (err) {
+      showToast(err.message || 'Failed to remove transport.', 'error');
+      throw err;
+    }
+  };
+
+  const toggleTransportBooking = async (tripId, transportId) => {
+    if (!currentUser) return null;
+    try {
+      const updated = await storageService.toggleTransportBooking(tripId, transportId, currentUser.id);
+      await refreshTrips();
+      const statusText = updated.isBooked ? 'Booked & Confirmed ✓' : 'Marked as Pending';
+      showToast(`Transport status: ${statusText}`);
+      return updated;
+    } catch (err) {
+      showToast(err.message || 'Failed to update booking status.', 'error');
+      throw err;
+    }
+  };
+
   return (
     <TripContext.Provider
       value={{
@@ -309,7 +378,12 @@ export function TripProvider({ children }) {
         addExpense,
         updateExpense,
         deleteExpense,
-        setTripBudget
+        setTripBudget,
+        setStopAccommodation,
+        addTransport,
+        updateTransport,
+        deleteTransport,
+        toggleTransportBooking
       }}
     >
       {children}

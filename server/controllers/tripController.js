@@ -733,6 +733,161 @@ const setTripBudget = async (req, res) => {
   }
 };
 
+const setStopAccommodation = async (req, res) => {
+  try {
+    const { tripId, stopId } = req.params;
+    const { hotelName, checkInDate, checkOutDate, confirmationCode, cost, currency, address, isConfirmed, notes } = req.body;
+
+    const trip = await Trip.findOne({ _id: tripId, userId: req.user._id });
+    if (!trip) {
+      return res.status(404).json({ message: "Trip not found or unauthorized." });
+    }
+
+    const stop = trip.stops.find((s) => s.id === stopId);
+    if (!stop) {
+      return res.status(404).json({ message: "Stop not found." });
+    }
+
+    stop.accommodation = {
+      id: stop.accommodation?.id || `acc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      hotelName: (hotelName || "").trim(),
+      checkInDate: checkInDate || stop.arrivalDate,
+      checkOutDate: checkOutDate || stop.departureDate,
+      confirmationCode: (confirmationCode || "").trim(),
+      cost: Number(cost) || 0,
+      currency: currency || trip.currency || "INR",
+      address: (address || "").trim(),
+      isConfirmed: Boolean(isConfirmed),
+      notes: (notes || "").trim(),
+    };
+
+    await trip.save();
+
+    return res.json({ accommodation: stop.accommodation, trip: formatTrip(trip) });
+  } catch (error) {
+    console.error("Set accommodation error:", error);
+    return res.status(500).json({ message: "Failed to update accommodation." });
+  }
+};
+
+const addTransport = async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const { mode, fromCity, toCity, carrier, referenceNumber, departureTime, arrivalTime, cost, currency, isBooked, notes } = req.body;
+
+    const trip = await Trip.findOne({ _id: tripId, userId: req.user._id });
+    if (!trip) {
+      return res.status(404).json({ message: "Trip not found or unauthorized." });
+    }
+
+    const newTransport = {
+      id: `trn-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      mode: mode || "Train / Rail",
+      fromCity: (fromCity || "").trim(),
+      toCity: (toCity || "").trim(),
+      carrier: (carrier || "").trim(),
+      referenceNumber: (referenceNumber || "").trim(),
+      departureTime: departureTime || "",
+      arrivalTime: arrivalTime || "",
+      cost: Number(cost) || 0,
+      currency: currency || trip.currency || "INR",
+      isBooked: Boolean(isBooked),
+      notes: (notes || "").trim(),
+    };
+
+    if (!Array.isArray(trip.transports)) {
+      trip.transports = [];
+    }
+
+    trip.transports.push(newTransport);
+    await trip.save();
+
+    return res.status(201).json({ transport: newTransport, trip: formatTrip(trip) });
+  } catch (error) {
+    console.error("Add transport error:", error);
+    return res.status(500).json({ message: "Failed to add transport segment." });
+  }
+};
+
+const updateTransport = async (req, res) => {
+  try {
+    const { tripId, transportId } = req.params;
+    const { mode, fromCity, toCity, carrier, referenceNumber, departureTime, arrivalTime, cost, currency, isBooked, notes } = req.body;
+
+    const trip = await Trip.findOne({ _id: tripId, userId: req.user._id });
+    if (!trip || !Array.isArray(trip.transports)) {
+      return res.status(404).json({ message: "Trip or transport not found." });
+    }
+
+    const transport = trip.transports.find((t) => t.id === transportId);
+    if (!transport) {
+      return res.status(404).json({ message: "Transport not found." });
+    }
+
+    if (mode !== undefined) transport.mode = mode;
+    if (fromCity !== undefined) transport.fromCity = fromCity.trim();
+    if (toCity !== undefined) transport.toCity = toCity.trim();
+    if (carrier !== undefined) transport.carrier = carrier.trim();
+    if (referenceNumber !== undefined) transport.referenceNumber = referenceNumber.trim();
+    if (departureTime !== undefined) transport.departureTime = departureTime;
+    if (arrivalTime !== undefined) transport.arrivalTime = arrivalTime;
+    if (cost !== undefined) transport.cost = Number(cost) || 0;
+    if (currency !== undefined) transport.currency = currency;
+    if (isBooked !== undefined) transport.isBooked = Boolean(isBooked);
+    if (notes !== undefined) transport.notes = notes.trim();
+
+    await trip.save();
+
+    return res.json({ transport, trip: formatTrip(trip) });
+  } catch (error) {
+    console.error("Update transport error:", error);
+    return res.status(500).json({ message: "Failed to update transport." });
+  }
+};
+
+const deleteTransport = async (req, res) => {
+  try {
+    const { tripId, transportId } = req.params;
+
+    const trip = await Trip.findOne({ _id: tripId, userId: req.user._id });
+    if (!trip || !Array.isArray(trip.transports)) {
+      return res.status(404).json({ message: "Trip or transports not found." });
+    }
+
+    trip.transports = trip.transports.filter((t) => t.id !== transportId);
+    await trip.save();
+
+    return res.json({ success: true, trip: formatTrip(trip) });
+  } catch (error) {
+    console.error("Delete transport error:", error);
+    return res.status(500).json({ message: "Failed to delete transport." });
+  }
+};
+
+const toggleTransportBooking = async (req, res) => {
+  try {
+    const { tripId, transportId } = req.params;
+
+    const trip = await Trip.findOne({ _id: tripId, userId: req.user._id });
+    if (!trip || !Array.isArray(trip.transports)) {
+      return res.status(404).json({ message: "Trip or transports not found." });
+    }
+
+    const transport = trip.transports.find((t) => t.id === transportId);
+    if (!transport) {
+      return res.status(404).json({ message: "Transport not found." });
+    }
+
+    transport.isBooked = !transport.isBooked;
+    await trip.save();
+
+    return res.json({ transport, trip: formatTrip(trip) });
+  } catch (error) {
+    console.error("Toggle transport booking error:", error);
+    return res.status(500).json({ message: "Failed to toggle transport booking." });
+  }
+};
+
 module.exports = {
   getTrips,
   getTripById,
@@ -752,4 +907,9 @@ module.exports = {
   updateExpense,
   deleteExpense,
   setTripBudget,
+  setStopAccommodation,
+  addTransport,
+  updateTransport,
+  deleteTransport,
+  toggleTransportBooking,
 };

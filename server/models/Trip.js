@@ -18,6 +18,44 @@ const activitySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const accommodationSchema = new mongoose.Schema(
+  {
+    id: { type: String },
+    hotelName: { type: String, default: "" },
+    checkInDate: { type: String, default: "" },
+    checkOutDate: { type: String, default: "" },
+    confirmationCode: { type: String, default: "" },
+    cost: { type: Number, default: 0 },
+    currency: { type: String, default: "INR" },
+    address: { type: String, default: "" },
+    isConfirmed: { type: Boolean, default: false },
+    notes: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
+const transportSchema = new mongoose.Schema(
+  {
+    id: { type: String },
+    mode: {
+      type: String,
+      enum: ["Flight", "Train / Rail", "Car / Rental", "Bus", "Ferry", "Other"],
+      default: "Train / Rail",
+    },
+    fromCity: { type: String, default: "" },
+    toCity: { type: String, default: "" },
+    carrier: { type: String, default: "" },
+    referenceNumber: { type: String, default: "" },
+    departureTime: { type: String, default: "" },
+    arrivalTime: { type: String, default: "" },
+    cost: { type: Number, default: 0 },
+    currency: { type: String, default: "INR" },
+    isBooked: { type: Boolean, default: false },
+    notes: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
 const stopSchema = new mongoose.Schema(
   {
     id: { type: String },
@@ -29,6 +67,7 @@ const stopSchema = new mongoose.Schema(
     budgetAllocation: { type: Number, default: 0 },
     notes: { type: String, default: "" },
     activities: [activitySchema],
+    accommodation: accommodationSchema,
   },
   { _id: false }
 );
@@ -101,6 +140,7 @@ const tripSchema = new mongoose.Schema(
       default: true,
     },
     stops: [stopSchema],
+    transports: [transportSchema],
     expenses: [expenseSchema],
   },
   {

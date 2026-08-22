@@ -19,7 +19,8 @@ import {
   Wallet,
   TrendingUp,
   FileText,
-  Share2
+  Share2,
+  Train
 } from 'lucide-react';
 import { useTrips } from '../../context/TripContext';
 import { StopModal } from '../trip-studio/StopModal';
@@ -28,11 +29,12 @@ import { BudgetDashboard } from '../BudgetDashboard';
 import { ExportPdfButton } from '../ExportPdfButton';
 import { PrintableTripDocument } from '../PrintableTripDocument';
 import { ShareModal } from '../share/ShareModal';
+import { LogisticsPanel } from '../logistics/LogisticsPanel';
 
 export function TripDetailShell({ trip, onBack }) {
   const { deleteTrip, addStop, updateStop, deleteStop, moveStop } = useTrips();
 
-  const [activeView, setActiveView] = useState('timeline'); // 'timeline' | 'cards' | 'budget' | 'print'
+  const [activeView, setActiveView] = useState('timeline'); // 'timeline' | 'cards' | 'logistics' | 'budget' | 'print'
   const [isStopModalOpen, setIsStopModalOpen] = useState(false);
   const [editingStop, setEditingStop] = useState(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -442,6 +444,8 @@ export function TripDetailShell({ trip, onBack }) {
           <h2 style={{ fontSize: '1.35rem', color: '#ffffff', margin: 0 }}>
             {activeView === 'budget'
               ? 'Trip Budget & Expense Tracker'
+              : activeView === 'logistics'
+              ? 'Transport & Accommodation Logistics'
               : activeView === 'print'
               ? 'Printable Trip Document & PDF Manifest'
               : 'Multi-City Itinerary & Route Flow'}
@@ -449,6 +453,8 @@ export function TripDetailShell({ trip, onBack }) {
           <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '3px 0 0 0' }}>
             {activeView === 'budget'
               ? 'Real-time multi-currency expense ledger, category breakdown, and financial health alerts.'
+              : activeView === 'logistics'
+              ? 'Track hotel reservations, booking confirmation codes, trains, flights, and road transit.'
               : activeView === 'print'
               ? 'Clean formatted printable itinerary ready for PDF download or Ctrl + P printing.'
               : 'Sequential timeline of stops. Use Move Up (↑) / Down (↓) to reorder cities.'}
@@ -473,6 +479,14 @@ export function TripDetailShell({ trip, onBack }) {
             <span>Stop Cards</span>
           </button>
           <button
+            onClick={() => setActiveView('logistics')}
+            className={`btn btn-sm ${activeView === 'logistics' ? 'btn-primary' : 'btn-ghost'}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem' }}
+          >
+            <Train size={14} />
+            <span>Logistics & Stays</span>
+          </button>
+          <button
             onClick={() => setActiveView('budget')}
             className={`btn btn-sm ${activeView === 'budget' ? 'btn-primary' : 'btn-ghost'}`}
             style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem' }}
@@ -491,8 +505,10 @@ export function TripDetailShell({ trip, onBack }) {
         </div>
       </div>
 
-      {/* Main View Content: Budget Dashboard vs Print View vs Stops Views */}
-      {activeView === 'budget' ? (
+      {/* Main View Content: Logistics vs Budget vs Print View vs Stops Views */}
+      {activeView === 'logistics' ? (
+        <LogisticsPanel trip={trip} />
+      ) : activeView === 'budget' ? (
         <BudgetDashboard trip={trip} />
       ) : activeView === 'print' ? (
         <PrintableTripDocument trip={trip} />
