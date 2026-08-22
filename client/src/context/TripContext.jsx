@@ -41,10 +41,23 @@ export function TripProvider({ children }) {
     try {
       const newTrip = storageService.createTrip(tripData, currentUser.id);
       refreshTrips();
-      showToast(`Trip "${newTrip.title}" planned successfully!`);
+      showToast(`Trip "${newTrip.title}" planned with ${newTrip.stops?.length || 0} stops!`);
       return newTrip;
     } catch (err) {
       showToast(err.message || 'Failed to create trip.', 'error');
+      throw err;
+    }
+  };
+
+  const updateTrip = (tripId, tripData) => {
+    if (!currentUser) return null;
+    try {
+      const updated = storageService.updateTrip(tripId, tripData, currentUser.id);
+      refreshTrips();
+      showToast('Trip updated successfully.');
+      return updated;
+    } catch (err) {
+      showToast(err.message || 'Failed to update trip.', 'error');
       throw err;
     }
   };
@@ -71,6 +84,76 @@ export function TripProvider({ children }) {
     setSelectedTrip(null);
   };
 
+  // --- Stop Management Actions ---
+  const addStop = (tripId, stopData) => {
+    if (!currentUser) return null;
+    try {
+      const newStop = storageService.addStop(tripId, stopData, currentUser.id);
+      refreshTrips();
+      showToast(`Added ${newStop.cityName} to itinerary.`);
+      return newStop;
+    } catch (err) {
+      showToast(err.message || 'Failed to add stop.', 'error');
+      throw err;
+    }
+  };
+
+  const updateStop = (tripId, stopId, stopData) => {
+    if (!currentUser) return null;
+    try {
+      const updated = storageService.updateStop(tripId, stopId, stopData, currentUser.id);
+      refreshTrips();
+      showToast(`Updated ${updated.cityName} details.`);
+      return updated;
+    } catch (err) {
+      showToast(err.message || 'Failed to update stop.', 'error');
+      throw err;
+    }
+  };
+
+  const deleteStop = (tripId, stopId) => {
+    if (!currentUser) return false;
+    try {
+      const success = storageService.deleteStop(tripId, stopId, currentUser.id);
+      if (success) {
+        refreshTrips();
+        showToast('City stop removed.', 'info');
+      }
+      return success;
+    } catch (err) {
+      showToast(err.message || 'Failed to remove stop.', 'error');
+      throw err;
+    }
+  };
+
+  const moveStop = (tripId, stopId, direction) => {
+    if (!currentUser) return false;
+    try {
+      const stops = storageService.moveStop(tripId, stopId, direction, currentUser.id);
+      if (stops) {
+        refreshTrips();
+      }
+      return stops;
+    } catch (err) {
+      showToast(err.message || 'Failed to reorder stop.', 'error');
+      throw err;
+    }
+  };
+
+  const reorderStops = (tripId, orderedStopIds) => {
+    if (!currentUser) return false;
+    try {
+      const stops = storageService.reorderStops(tripId, orderedStopIds, currentUser.id);
+      if (stops) {
+        refreshTrips();
+      }
+      return stops;
+    } catch (err) {
+      showToast(err.message || 'Failed to reorder stops.', 'error');
+      throw err;
+    }
+  };
+
   return (
     <TripContext.Provider
       value={{
@@ -79,11 +162,17 @@ export function TripProvider({ children }) {
         loading,
         toast,
         createTrip,
+        updateTrip,
         deleteTrip,
         selectTrip,
         clearSelectedTrip,
         refreshTrips,
-        showToast
+        showToast,
+        addStop,
+        updateStop,
+        deleteStop,
+        moveStop,
+        reorderStops
       }}
     >
       {children}
@@ -98,3 +187,4 @@ export function useTrips() {
   }
   return context;
 }
+

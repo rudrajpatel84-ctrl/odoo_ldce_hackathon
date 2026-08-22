@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Compass, Calendar, DollarSign, AlertCircle, Sparkles } from 'lucide-react';
+import { X, Compass, Calendar, DollarSign, AlertCircle, Sparkles, MapPin } from 'lucide-react';
 import { useTrips } from '../../context/TripContext';
+import { MultiCityStopForm } from '../trip-studio/MultiCityStopForm';
 
 export function CreateTripModal({ isOpen, onClose }) {
   const { createTrip } = useTrips();
@@ -18,10 +19,16 @@ export function CreateTripModal({ isOpen, onClose }) {
   const [endDate, setEndDate] = useState(getDefaultEndString());
   const [totalBudget, setTotalBudget] = useState('2500');
   const [currency, setCurrency] = useState('USD');
+  const [stops, setStops] = useState([]);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleDatesCalculated = (earliestArrival, latestDeparture) => {
+    if (earliestArrival) setStartDate(earliestArrival);
+    if (latestDeparture) setEndDate(latestDeparture);
+  };
 
   const validate = () => {
     const cleanTitle = title.trim();
@@ -46,6 +53,14 @@ export function CreateTripModal({ isOpen, onClose }) {
     if (isNaN(budgetNum) || budgetNum < 0) {
       return 'Target budget cannot be negative.';
     }
+
+    // Check stops validity if any
+    for (let i = 0; i < stops.length; i++) {
+      if (!stops[i].cityName || !stops[i].cityName.trim()) {
+        return `Stop #${i + 1} must have a city name.`;
+      }
+    }
+
     return null;
   };
 
@@ -67,7 +82,8 @@ export function CreateTripModal({ isOpen, onClose }) {
         startDate,
         endDate,
         totalBudget: Number(totalBudget) || 0,
-        currency
+        currency,
+        stops
       });
       // Reset form
       setTitle('');
@@ -76,6 +92,7 @@ export function CreateTripModal({ isOpen, onClose }) {
       setEndDate(getDefaultEndString());
       setTotalBudget('2500');
       setCurrency('USD');
+      setStops([]);
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to create trip.');
@@ -86,7 +103,7 @@ export function CreateTripModal({ isOpen, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Compass size={20} color="#38bdf8" />
@@ -98,7 +115,7 @@ export function CreateTripModal({ isOpen, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="modal-body">
+          <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
             {error && (
               <div className="alert-error">
                 <AlertCircle size={18} style={{ flexShrink: 0 }} />
@@ -106,7 +123,7 @@ export function CreateTripModal({ isOpen, onClose }) {
               </div>
             )}
 
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Trip Title *</label>
               <input
                 type="text"
@@ -119,7 +136,7 @@ export function CreateTripModal({ isOpen, onClose }) {
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Description / Purpose (Optional)</label>
               <textarea
                 rows={2}
@@ -133,8 +150,8 @@ export function CreateTripModal({ isOpen, onClose }) {
 
             {/* Dates Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label">Start Date *</label>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Trip Start Date *</label>
                 <input
                   type="date"
                   required
@@ -144,8 +161,8 @@ export function CreateTripModal({ isOpen, onClose }) {
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">End Date *</label>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Trip End Date *</label>
                 <input
                   type="date"
                   required
@@ -158,7 +175,7 @@ export function CreateTripModal({ isOpen, onClose }) {
 
             {/* Budget & Currency Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-              <div className="form-group">
+              <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Target Budget</label>
                 <input
                   type="number"
@@ -171,7 +188,7 @@ export function CreateTripModal({ isOpen, onClose }) {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Currency</label>
                 <select
                   value={currency}
@@ -187,6 +204,16 @@ export function CreateTripModal({ isOpen, onClose }) {
                   <option value="AUD">AUD (A$)</option>
                 </select>
               </div>
+            </div>
+
+            {/* Multi-City Stops Builder */}
+            <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '1.2rem' }}>
+              <MultiCityStopForm
+                stops={stops}
+                onChangeStops={setStops}
+                baseStartDate={startDate}
+                onDatesCalculated={handleDatesCalculated}
+              />
             </div>
           </div>
 
@@ -204,3 +231,4 @@ export function CreateTripModal({ isOpen, onClose }) {
     </div>
   );
 }
+

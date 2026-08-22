@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Calendar, DollarSign, Clock, ArrowRight, Trash2, MapPin } from 'lucide-react';
+import { Calendar, DollarSign, Clock, ArrowRight, Trash2, MapPin, Navigation, Eye } from 'lucide-react';
+import { SequentialTimelinePreview } from './SequentialTimelinePreview';
 
 export function TripCard({ trip, onOpenTrip, onDeleteTrip }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const formatDateRange = () => {
     if (!trip.startDate) return 'Dates TBD';
@@ -42,6 +44,7 @@ export function TripCard({ trip, onOpenTrip, onDeleteTrip }) {
   };
 
   const duration = getDurationDays();
+  const stops = trip.stops || [];
 
   const handleDeleteClick = (e) => {
     e.stopPropagation();
@@ -54,40 +57,22 @@ export function TripCard({ trip, onOpenTrip, onDeleteTrip }) {
   };
 
   return (
-    <div
-      className="glass-card animate-fade-in"
-      style={{
-        padding: '1.5rem',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        height: '100%',
-        position: 'relative'
-      }}
-    >
-      <div>
-        {/* Header Badges */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '6px' }}>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '3px 8px',
-                borderRadius: 'var(--radius-full)',
-                background: 'rgba(56, 189, 248, 0.15)',
-                border: '1px solid rgba(56, 189, 248, 0.3)',
-                fontSize: '0.75rem',
-                color: '#38bdf8',
-                fontWeight: 600
-              }}
-            >
-              <Calendar size={12} />
-              {formatDateRange()}
-            </span>
-
-            {duration && (
+    <>
+      <div
+        className="glass-card animate-fade-in"
+        style={{
+          padding: '1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          height: '100%',
+          position: 'relative'
+        }}
+      >
+        <div>
+          {/* Header Badges */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '6px' }}>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               <span
                 style={{
                   display: 'inline-flex',
@@ -95,73 +80,152 @@ export function TripCard({ trip, onOpenTrip, onDeleteTrip }) {
                   gap: '4px',
                   padding: '3px 8px',
                   borderRadius: 'var(--radius-full)',
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'rgba(56, 189, 248, 0.15)',
+                  border: '1px solid rgba(56, 189, 248, 0.3)',
                   fontSize: '0.75rem',
-                  color: 'var(--text-muted)'
+                  color: '#38bdf8',
+                  fontWeight: 600
                 }}
               >
-                <Clock size={12} />
-                {duration} {duration === 1 ? 'Day' : 'Days'}
+                <Calendar size={12} />
+                {formatDateRange()}
               </span>
+
+              {duration && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '3px 8px',
+                    borderRadius: 'var(--radius-full)',
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    fontSize: '0.75rem',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  <Clock size={12} />
+                  {duration} {duration === 1 ? 'Day' : 'Days'}
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={handleDeleteClick}
+              className={`btn btn-icon btn-sm ${confirmingDelete ? 'btn-danger' : 'btn-ghost'}`}
+              title={confirmingDelete ? 'Click again to confirm deletion' : 'Delete Trip'}
+              style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+            >
+              <Trash2 size={14} color={confirmingDelete ? '#fca5a5' : 'var(--text-dim)'} />
+              {confirmingDelete && <span>Confirm?</span>}
+            </button>
+          </div>
+
+          {/* Title */}
+          <h3 style={{ fontSize: '1.25rem', color: '#ffffff', marginBottom: '0.4rem', lineHeight: 1.3 }}>
+            {trip.title}
+          </h3>
+
+          {/* Description */}
+          {trip.description && (
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.85rem', lineHeight: 1.5 }}>
+              {trip.description}
+            </p>
+          )}
+
+          {/* Multi-City Sequential Route Trail */}
+          {stops.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '5px',
+                padding: '0.55rem 0.75rem',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(15, 23, 42, 0.65)',
+                border: '1px solid rgba(56, 189, 248, 0.2)',
+                marginBottom: '1rem'
+              }}
+            >
+              <MapPin size={13} color="#38bdf8" style={{ flexShrink: 0 }} />
+              {stops.map((stop, idx) => (
+                <React.Fragment key={stop.id || idx}>
+                  <span
+                    style={{
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      color: idx === 0 ? '#38bdf8' : idx === stops.length - 1 ? '#a855f7' : '#f8fafc'
+                    }}
+                  >
+                    {stop.cityName}
+                  </span>
+                  {idx < stops.length - 1 && (
+                    <span style={{ color: 'var(--text-dim)', fontSize: '0.72rem' }}>➔</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer info & CTA */}
+        <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Target Budget
+              </div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#10b981' }}>
+                {formatCurrency(trip.totalBudget, trip.currency)} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{trip.currency}</span>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Destinations
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#38bdf8', fontWeight: 600 }}>
+                {stops.length} {stops.length === 1 ? 'stop' : 'stops'}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: stops.length > 0 ? '1fr 1.3fr' : '1fr', gap: '0.5rem' }}>
+            {stops.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsPreviewOpen(true)}
+                className="btn btn-secondary btn-sm"
+                style={{ fontSize: '0.8rem', gap: '4px' }}
+                title="Open visual route timeline preview"
+              >
+                <Eye size={13} />
+                <span>Timeline</span>
+              </button>
             )}
-          </div>
 
-          <button
-            onClick={handleDeleteClick}
-            className={`btn btn-icon btn-sm ${confirmingDelete ? 'btn-danger' : 'btn-ghost'}`}
-            title={confirmingDelete ? 'Click again to confirm deletion' : 'Delete Trip'}
-            style={{ padding: '4px 8px', fontSize: '0.75rem' }}
-          >
-            <Trash2 size={14} color={confirmingDelete ? '#fca5a5' : 'var(--text-dim)'} />
-            {confirmingDelete && <span>Confirm?</span>}
-          </button>
-        </div>
-
-        {/* Title */}
-        <h3 style={{ fontSize: '1.25rem', color: '#ffffff', marginBottom: '0.4rem', lineHeight: 1.3 }}>
-          {trip.title}
-        </h3>
-
-        {/* Description */}
-        {trip.description && (
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
-            {trip.description}
-          </p>
-        )}
-      </div>
-
-      {/* Footer info & CTA */}
-      <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Target Budget
-            </div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#10b981' }}>
-              {formatCurrency(trip.totalBudget, trip.currency)} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{trip.currency}</span>
-            </div>
-          </div>
-
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Destinations
-            </div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              {trip.stops?.length || 0} stops
-            </div>
+            <button
+              onClick={() => onOpenTrip(trip.id)}
+              className="btn btn-primary btn-sm"
+              style={{ justifyContent: 'center', gap: '4px', fontSize: '0.8rem' }}
+            >
+              <span>Manage Trip</span>
+              <ArrowRight size={13} />
+            </button>
           </div>
         </div>
-
-        <button
-          onClick={() => onOpenTrip(trip.id)}
-          className="btn btn-secondary"
-          style={{ width: '100%', justifyContent: 'space-between' }}
-        >
-          <span>View Trip Details</span>
-          <ArrowRight size={15} />
-        </button>
       </div>
-    </div>
+
+      {/* Interactive Timeline Preview Modal */}
+      <SequentialTimelinePreview
+        trip={trip}
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        onOpenFullTrip={onOpenTrip}
+      />
+    </>
   );
 }
+

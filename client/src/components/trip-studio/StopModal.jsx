@@ -128,7 +128,8 @@ export function StopModal({ isOpen, onClose, onSave, initialData }) {
                 placeholder="e.g. Hotel reservation #, train station transfers..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="form-textarea"
+                className="form-input"
+                style={{ resize: 'vertical' }}
               />
             </div>
           </div>

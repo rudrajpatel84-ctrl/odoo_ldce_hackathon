@@ -1,4 +1,5 @@
 import { hashPassword, verifyPassword } from './crypto';
+import { INITIAL_TRIPS } from './mockData';
 
 const STORAGE_KEY_USERS = 'globetrotter_users_v1';
 const STORAGE_KEY_AUTH = 'globetrotter_auth_session_v1';
@@ -12,7 +13,7 @@ const DEMO_PASSWORD_HASH = '89e01536ac207279409d4de1e5253e01f4a1769e696db0d6062c
 
 export const storageService = {
   /**
-   * Initializes relational tables and seeds demo account if empty.
+   * Initializes relational tables and seeds demo account & trips if empty.
    */
   async init() {
     // 1. Users Table
@@ -28,10 +29,20 @@ export const storageService = {
       localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify([demoUser]));
     }
 
-    // 2. Relational Tables for upcoming milestones
-    if (!localStorage.getItem(STORAGE_KEY_TRIPS)) {
-      localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify([]));
+    // 2. Relational Trips Table - Seed with demo multi-city voyages if empty
+    const existingTrips = localStorage.getItem(STORAGE_KEY_TRIPS);
+    if (!existingTrips || JSON.parse(existingTrips).length === 0) {
+      const seededTrips = INITIAL_TRIPS.map(t => ({
+        ...t,
+        userId: 'user-demo-1',
+        stops: (t.stops || []).map((s, idx) => ({
+          ...s,
+          orderIndex: typeof s.orderIndex === 'number' ? s.orderIndex : idx
+        }))
+      }));
+      localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(seededTrips));
     }
+
     if (!localStorage.getItem(STORAGE_KEY_STOPS)) {
       localStorage.setItem(STORAGE_KEY_STOPS, JSON.stringify([]));
     }
@@ -176,7 +187,7 @@ export const storageService = {
   },
 
   /**
-   * Trips CRUD Layer for Hour 2
+   * Trips CRUD Layer with Multi-City Stops Support
    */
   getTrips(userId) {
     if (!userId) return [];
@@ -191,7 +202,13 @@ export const storageService = {
   getTripById(tripId, userId) {
     if (!tripId || !userId) return null;
     const trips = this.getTrips(userId);
-    return trips.find(t => t.id === tripId) || null;
+    const trip = trips.find(t => t.id === tripId);
+    if (!trip) return null;
+    // Ensure stops are sorted by orderIndex
+    if (trip.stops && trip.stops.length > 0) {
+      trip.stops.sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+    }
+    return trip;
   },
 
   createTrip(tripData, userId) {
@@ -215,20 +232,37 @@ export const storageService = {
       throw new Error('Target budget must be a positive number.');
     }
 
+    const newTripId = `trip-${Date.now()}`;
+
+    // Format stops if passed from multi-city form
+    const formattedStops = (tripData.stops || []).map((stop, idx) => ({
+      id: stop.id || `stop-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 5)}`,
+      tripId: newTripId,
+      cityName: (stop.cityName || '').trim(),
+      country: (stop.country || '').trim(),
+      arrivalDate: stop.arrivalDate || tripData.startDate,
+      departureDate: stop.departureDate || tripData.endDate,
+      orderIndex: typeof stop.orderIndex === 'number' ? stop.orderIndex : idx,
+      budgetAllocation: Number(stop.budgetAllocation) || 0,
+      notes: (stop.notes || '').trim(),
+      activities: stop.activities || []
+    }));
+
     const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
     const newTrip = {
-      id: `trip-${Date.now()}`,
+      id: newTripId,
       userId,
       title,
       description: (tripData.description || '').trim(),
+      coverImage: tripData.coverImage || 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80',
       startDate: tripData.startDate,
       endDate: tripData.endDate,
       totalBudget: budget,
       currency: tripData.currency || 'USD',
       shareToken: `gt-share-${Math.random().toString(36).substring(2, 9)}`,
       isPublic: true,
-      stops: [],
-      expenses: [],
+      stops: formattedStops,
+      expenses: tripData.expenses || [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -238,11 +272,158 @@ export const storageService = {
     return newTrip;
   },
 
+  updateTrip(tripId, tripData, userId) {
+    if (!tripId || !userId) return null;
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const idx = allTrips.findIndex(t => t.id === tripId && t.userId === userId);
+    if (idx === -1) return null;
+
+    allTrips[idx] = {
+      ...allTrips[idx],
+      ...tripData,
+      updatedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return allTrips[idx];
+  },
+
   deleteTrip(tripId, userId) {
     if (!tripId || !userId) return false;
     const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
     const filtered = allTrips.filter(t => !(t.id === tripId && t.userId === userId));
     localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(filtered));
     return true;
+  },
+
+  /**
+   * Stops Management Layer (Hour 3)
+   */
+  addStop(tripId, stopData, userId) {
+    if (!tripId || !userId) throw new Error('Trip ID and user authentication required.');
+    const cityName = (stopData.cityName || '').trim();
+    if (!cityName) throw new Error('City name is required.');
+
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip) throw new Error('Trip not found.');
+
+    if (!trip.stops) trip.stops = [];
+
+    const newStop = {
+      id: stopData.id || `stop-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      tripId,
+      cityName,
+      country: (stopData.country || '').trim(),
+      arrivalDate: stopData.arrivalDate || trip.startDate,
+      departureDate: stopData.departureDate || trip.endDate,
+      orderIndex: trip.stops.length,
+      budgetAllocation: Number(stopData.budgetAllocation) || 0,
+      notes: (stopData.notes || '').trim(),
+      activities: []
+    };
+
+    trip.stops.push(newStop);
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return newStop;
+  },
+
+  updateStop(tripId, stopId, stopData, userId) {
+    if (!tripId || !stopId || !userId) throw new Error('Trip ID and stop ID required.');
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip || !trip.stops) throw new Error('Trip or stops not found.');
+
+    const stop = trip.stops.find(s => s.id === stopId);
+    if (!stop) throw new Error('Stop not found.');
+
+    if (stopData.cityName !== undefined) stop.cityName = (stopData.cityName || '').trim();
+    if (stopData.country !== undefined) stop.country = (stopData.country || '').trim();
+    if (stopData.arrivalDate !== undefined) stop.arrivalDate = stopData.arrivalDate;
+    if (stopData.departureDate !== undefined) stop.departureDate = stopData.departureDate;
+    if (stopData.budgetAllocation !== undefined) stop.budgetAllocation = Number(stopData.budgetAllocation) || 0;
+    if (stopData.notes !== undefined) stop.notes = (stopData.notes || '').trim();
+
+    trip.updatedAt = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return stop;
+  },
+
+  deleteStop(tripId, stopId, userId) {
+    if (!tripId || !stopId || !userId) return false;
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip || !trip.stops) return false;
+
+    trip.stops = trip.stops.filter(s => s.id !== stopId);
+    // Re-index order
+    trip.stops.forEach((s, idx) => {
+      s.orderIndex = idx;
+    });
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return true;
+  },
+
+  moveStop(tripId, stopId, direction, userId) {
+    if (!tripId || !stopId || !userId) return false;
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip || !trip.stops || trip.stops.length < 2) return false;
+
+    // Ensure sorted
+    trip.stops.sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+
+    const currentIndex = trip.stops.findIndex(s => s.id === stopId);
+    if (currentIndex === -1) return false;
+
+    if (direction === 'up' && currentIndex > 0) {
+      const temp = trip.stops[currentIndex];
+      trip.stops[currentIndex] = trip.stops[currentIndex - 1];
+      trip.stops[currentIndex - 1] = temp;
+    } else if (direction === 'down' && currentIndex < trip.stops.length - 1) {
+      const temp = trip.stops[currentIndex];
+      trip.stops[currentIndex] = trip.stops[currentIndex + 1];
+      trip.stops[currentIndex + 1] = temp;
+    } else {
+      return false;
+    }
+
+    // Re-index order
+    trip.stops.forEach((s, idx) => {
+      s.orderIndex = idx;
+    });
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return trip.stops;
+  },
+
+  reorderStops(tripId, orderedStopIds, userId) {
+    if (!tripId || !orderedStopIds || !userId) return false;
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip || !trip.stops) return false;
+
+    const stopMap = new Map(trip.stops.map(s => [s.id, s]));
+    const reordered = [];
+
+    orderedStopIds.forEach((id, idx) => {
+      const stop = stopMap.get(id);
+      if (stop) {
+        stop.orderIndex = idx;
+        reordered.push(stop);
+      }
+    });
+
+    trip.stops = reordered;
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return trip.stops;
   }
 };
+
