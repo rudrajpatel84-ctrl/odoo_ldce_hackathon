@@ -174,9 +174,66 @@ export const INITIAL_TRIPS = [
       }
     ],
     expenses: [
-      { id: "exp-1", tripId: "trip-japan-2026", title: "Hotel Gracery Shinjuku", category: "Stay", amount: 650, date: "2026-04-02", paidBy: "Demo User" },
-      { id: "exp-2", tripId: "trip-japan-2026", title: "Shinjuku Yakitori Dinner", category: "Food", amount: 85, date: "2026-04-02", paidBy: "Demo User" },
-      { id: "exp-3", tripId: "trip-japan-2026", title: "Suica IC Card Top-up", category: "Transport", amount: 50, date: "2026-04-03", paidBy: "Demo User" }
+      {
+        id: "exp-j1",
+        category: "Accommodation",
+        amount: 680,
+        currency: "USD",
+        note: "Hotel Gracery Shinjuku (4 nights)",
+        date: "2026-04-02",
+        paymentMethod: "Credit Card",
+        cityStopId: "stop-tokyo"
+      },
+      {
+        id: "exp-j2",
+        category: "Transport",
+        amount: 210,
+        currency: "USD",
+        note: "JR Nationwide Pass 7-Day & Suica IC Card",
+        date: "2026-04-02",
+        paymentMethod: "Credit Card",
+        cityStopId: "stop-tokyo"
+      },
+      {
+        id: "exp-j3",
+        category: "Food & Dining",
+        amount: 85,
+        currency: "USD",
+        note: "Tsukiji fish market breakfast & snacks",
+        date: "2026-04-03",
+        paymentMethod: "Cash",
+        cityStopId: "stop-tokyo"
+      },
+      {
+        id: "exp-j4",
+        category: "Accommodation",
+        amount: 520,
+        currency: "USD",
+        note: "Gion Traditional Machiya Ryokan",
+        date: "2026-04-06",
+        paymentMethod: "Credit Card",
+        cityStopId: "stop-kyoto"
+      },
+      {
+        id: "exp-j5",
+        category: "Shopping",
+        amount: 140,
+        currency: "USD",
+        note: "Handmade ceramic matcha bowls & Kyoto incense",
+        date: "2026-04-08",
+        paymentMethod: "Credit Card",
+        cityStopId: "stop-kyoto"
+      },
+      {
+        id: "exp-j6",
+        category: "Food & Dining",
+        amount: 65,
+        currency: "USD",
+        note: "Dotonbori street food dinner & canal beer",
+        date: "2026-04-10",
+        paymentMethod: "Cash",
+        cityStopId: "stop-osaka"
+      }
     ]
   },
   {
@@ -301,7 +358,46 @@ export const INITIAL_TRIPS = [
       }
     ],
     expenses: [
-      { id: "exp-i1", tripId: "trip-italy-2026", title: "Rome Airbnb Deposit", category: "Stay", amount: 780, date: "2026-05-01", paidBy: "Demo User" }
+      {
+        id: "exp-i1",
+        category: "Accommodation",
+        amount: 780,
+        currency: "EUR",
+        note: "Trastevere Historic Boutique Apartment (4 nights)",
+        date: "2026-06-10",
+        paymentMethod: "Credit Card",
+        cityStopId: "stop-rome"
+      },
+      {
+        id: "exp-i2",
+        category: "Transport",
+        amount: 95,
+        currency: "EUR",
+        note: "Frecciarossa High-Speed Train Rome to Florence",
+        date: "2026-06-14",
+        paymentMethod: "Digital / Apple Pay",
+        cityStopId: "stop-rome"
+      },
+      {
+        id: "exp-i3",
+        category: "Food & Dining",
+        amount: 110,
+        currency: "EUR",
+        note: "Bistecca alla Fiorentina dinner with Chianti Classico",
+        date: "2026-06-15",
+        paymentMethod: "Credit Card",
+        cityStopId: "stop-florence"
+      },
+      {
+        id: "exp-i4",
+        category: "Shopping",
+        amount: 160,
+        currency: "EUR",
+        note: "San Lorenzo leather jacket & handmade notebook",
+        date: "2026-06-16",
+        paymentMethod: "Credit Card",
+        cityStopId: "stop-florence"
+      }
     ]
   }
 ];

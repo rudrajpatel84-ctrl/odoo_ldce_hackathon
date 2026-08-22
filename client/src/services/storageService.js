@@ -50,17 +50,27 @@ export const storageService = {
         trips.forEach(trip => {
           if (trip.userId === 'user-demo-1') {
             const initialMatch = INITIAL_TRIPS.find(it => it.id === trip.id);
-            if (initialMatch && trip.stops) {
-              trip.stops.forEach(stop => {
-                const initialStop = initialMatch.stops?.find(is => is.id === stop.id || is.cityName === stop.cityName);
-                if (initialStop && (!stop.activities || stop.activities.length === 0 || stop.activities.some(a => !a.durationHours || !a.timeSlot))) {
-                  stop.activities = initialStop.activities || [];
-                  changed = true;
-                }
-              });
+            if (initialMatch) {
+              if (trip.stops) {
+                trip.stops.forEach(stop => {
+                  const initialStop = initialMatch.stops?.find(is => is.id === stop.id || is.cityName === stop.cityName);
+                  if (initialStop && (!stop.activities || stop.activities.length === 0 || stop.activities.some(a => !a.durationHours || !a.timeSlot))) {
+                    stop.activities = initialStop.activities || [];
+                    changed = true;
+                  }
+                });
+              }
+              if (!Array.isArray(trip.expenses) || trip.expenses.length === 0 || trip.expenses.some(e => !e.paymentMethod || !e.category)) {
+                trip.expenses = initialMatch.expenses || [];
+                changed = true;
+              }
             }
           }
-          // Ensure all stops have activities array
+          // Ensure all trips have expenses array and stops have activities array
+          if (!Array.isArray(trip.expenses)) {
+            trip.expenses = [];
+            changed = true;
+          }
           if (trip.stops) {
             trip.stops.forEach(stop => {
               if (!Array.isArray(stop.activities)) {
@@ -558,6 +568,99 @@ export const storageService = {
 
     localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
     return activity;
+  },
+
+  /**
+   * Interactive Budget & Expense Management Layer (Hour 5)
+   * Expense Schema: { id, category, amount, currency, note, date, paymentMethod, cityStopId }
+   * Categories: Accommodation, Transport, Food & Dining, Activities, Shopping, Misc
+   */
+  addExpense(tripId, expenseData, userId) {
+    if (!tripId || !userId) throw new Error('Trip ID and user authentication required.');
+    const amount = Number(expenseData.amount);
+    if (isNaN(amount) || amount < 0) {
+      throw new Error('Expense amount must be a positive number.');
+    }
+
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip) throw new Error('Trip not found.');
+
+    if (!Array.isArray(trip.expenses)) {
+      trip.expenses = [];
+    }
+
+    const newExpense = {
+      id: expenseData.id || `exp-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      tripId,
+      category: expenseData.category || 'Misc',
+      amount: Math.max(0, amount),
+      currency: expenseData.currency || trip.currency || 'USD',
+      note: (expenseData.note || '').trim(),
+      date: expenseData.date || new Date().toISOString().split('T')[0],
+      paymentMethod: expenseData.paymentMethod || 'Credit Card',
+      cityStopId: expenseData.cityStopId || null,
+      createdAt: new Date().toISOString()
+    };
+
+    trip.expenses.unshift(newExpense);
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return newExpense;
+  },
+
+  updateExpense(tripId, expenseId, expenseData, userId) {
+    if (!tripId || !expenseId || !userId) throw new Error('Trip ID, expense ID, and user authentication required.');
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip || !Array.isArray(trip.expenses)) throw new Error('Trip or expenses not found.');
+
+    const expense = trip.expenses.find(e => e.id === expenseId);
+    if (!expense) throw new Error('Expense not found.');
+
+    if (expenseData.category !== undefined) expense.category = expenseData.category;
+    if (expenseData.amount !== undefined) expense.amount = Math.max(0, Number(expenseData.amount) || 0);
+    if (expenseData.currency !== undefined) expense.currency = expenseData.currency;
+    if (expenseData.note !== undefined) expense.note = (expenseData.note || '').trim();
+    if (expenseData.date !== undefined) expense.date = expenseData.date;
+    if (expenseData.paymentMethod !== undefined) expense.paymentMethod = expenseData.paymentMethod;
+    if (expenseData.cityStopId !== undefined) expense.cityStopId = expenseData.cityStopId || null;
+
+    trip.updatedAt = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return expense;
+  },
+
+  deleteExpense(tripId, expenseId, userId) {
+    if (!tripId || !expenseId || !userId) return false;
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip || !Array.isArray(trip.expenses)) return false;
+
+    trip.expenses = trip.expenses.filter(e => e.id !== expenseId);
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return true;
+  },
+
+  setTripBudget(tripId, totalBudget, userId) {
+    if (!tripId || !userId) throw new Error('Trip ID and user authentication required.');
+    const budget = Number(totalBudget);
+    if (isNaN(budget) || budget < 0) {
+      throw new Error('Total budget must be a positive number.');
+    }
+
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip) throw new Error('Trip not found.');
+
+    trip.totalBudget = budget;
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return trip;
   }
 };
 

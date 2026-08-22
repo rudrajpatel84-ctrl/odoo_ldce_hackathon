@@ -22,11 +22,12 @@ import {
 import { useTrips } from '../../context/TripContext';
 import { StopModal } from '../trip-studio/StopModal';
 import { ActivityPlanner } from '../ActivityPlanner';
+import { BudgetDashboard } from '../BudgetDashboard';
 
 export function TripDetailShell({ trip, onBack }) {
   const { deleteTrip, addStop, updateStop, deleteStop, moveStop } = useTrips();
 
-  const [activeView, setActiveView] = useState('timeline'); // 'timeline' | 'cards'
+  const [activeView, setActiveView] = useState('timeline'); // 'timeline' | 'cards' | 'budget'
   const [isStopModalOpen, setIsStopModalOpen] = useState(false);
   const [editingStop, setEditingStop] = useState(null);
 
@@ -227,7 +228,7 @@ export function TripDetailShell({ trip, onBack }) {
         )}
       </div>
 
-      {/* Real-time Trip Budget & Activities Pulse Bar (Hour 4 Sync Overview) */}
+      {/* Real-time Trip Budget & Activities Pulse Bar (Hour 5 Sync Overview) */}
       <div
         style={{
           display: 'grid',
@@ -238,14 +239,18 @@ export function TripDetailShell({ trip, onBack }) {
       >
         {/* Metric 1: Total Trip Budget */}
         <div
+          onClick={() => setActiveView('budget')}
           className="glass-card animate-fade-in"
+          title="Click to open Financial Command Center"
           style={{
             padding: '1rem',
             background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.6))',
-            border: '1px solid rgba(56, 189, 248, 0.25)',
+            border: activeView === 'budget' ? '1px solid #38bdf8' : '1px solid rgba(56, 189, 248, 0.25)',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px'
+            gap: '12px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
           }}
         >
           <div
@@ -275,14 +280,18 @@ export function TripDetailShell({ trip, onBack }) {
 
         {/* Metric 2: Live Activity Expenses */}
         <div
+          onClick={() => setActiveView('budget')}
           className="glass-card animate-fade-in"
+          title="Click to open Financial Command Center"
           style={{
             padding: '1rem',
             background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.6))',
             border: '1px solid rgba(16, 185, 129, 0.25)',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px'
+            gap: '12px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
           }}
         >
           <div
@@ -312,14 +321,18 @@ export function TripDetailShell({ trip, onBack }) {
 
         {/* Metric 3: City Budget Allocations */}
         <div
+          onClick={() => setActiveView('budget')}
           className="glass-card animate-fade-in"
+          title="Click to open Financial Command Center"
           style={{
             padding: '1rem',
             background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.6))',
             border: '1px solid rgba(168, 85, 247, 0.25)',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px'
+            gap: '12px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
           }}
         >
           <div
@@ -406,15 +419,17 @@ export function TripDetailShell({ trip, onBack }) {
         }}
       >
         <div>
-          <h2 style={{ fontSize: '1.35rem', color: '#ffffff' }}>
-            Multi-City Itinerary & Route Flow
+          <h2 style={{ fontSize: '1.35rem', color: '#ffffff', margin: 0 }}>
+            {activeView === 'budget' ? 'Trip Budget & Expense Tracker' : 'Multi-City Itinerary & Route Flow'}
           </h2>
-          <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>
-            Sequential timeline of stops. Use Move Up (↑) / Down (↓) to reorder cities.
+          <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', margin: '3px 0 0 0' }}>
+            {activeView === 'budget'
+              ? 'Real-time multi-currency expense ledger, category breakdown, and financial health alerts.'
+              : 'Sequential timeline of stops. Use Move Up (↑) / Down (↓) to reorder cities.'}
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '6px', background: 'rgba(0, 0, 0, 0.3)', padding: '4px', borderRadius: 'var(--radius-md)' }}>
+        <div style={{ display: 'flex', gap: '6px', background: 'rgba(0, 0, 0, 0.3)', padding: '4px', borderRadius: 'var(--radius-md)', flexWrap: 'wrap' }}>
           <button
             onClick={() => setActiveView('timeline')}
             className={`btn btn-sm ${activeView === 'timeline' ? 'btn-primary' : 'btn-ghost'}`}
@@ -431,11 +446,21 @@ export function TripDetailShell({ trip, onBack }) {
             <LayoutList size={14} />
             <span>Stop Cards</span>
           </button>
+          <button
+            onClick={() => setActiveView('budget')}
+            className={`btn btn-sm ${activeView === 'budget' ? 'btn-primary' : 'btn-ghost'}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem' }}
+          >
+            <Wallet size={14} />
+            <span>Budget & Expenses</span>
+          </button>
         </div>
       </div>
 
-      {/* Stops Sequence Content */}
-      {stops.length > 0 ? (
+      {/* Main View Content: Budget Dashboard vs Stops Views */}
+      {activeView === 'budget' ? (
+        <BudgetDashboard trip={trip} />
+      ) : stops.length > 0 ? (
         activeView === 'timeline' ? (
           /* Sequential Timeline View */
           <div style={{ position: 'relative', paddingLeft: '32px', marginTop: '1rem' }}>

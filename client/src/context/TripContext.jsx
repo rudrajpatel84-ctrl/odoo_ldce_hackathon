@@ -213,6 +213,61 @@ export function TripProvider({ children }) {
     }
   };
 
+  // --- Budget & Expenses Management Actions (Hour 5) ---
+  const addExpense = (tripId, expenseData) => {
+    if (!currentUser) return null;
+    try {
+      const newExpense = storageService.addExpense(tripId, expenseData, currentUser.id);
+      refreshTrips();
+      showToast(`Logged expense: ${newExpense.category} (${newExpense.currency} ${newExpense.amount})`);
+      return newExpense;
+    } catch (err) {
+      showToast(err.message || 'Failed to add expense.', 'error');
+      throw err;
+    }
+  };
+
+  const updateExpense = (tripId, expenseId, expenseData) => {
+    if (!currentUser) return null;
+    try {
+      const updated = storageService.updateExpense(tripId, expenseId, expenseData, currentUser.id);
+      refreshTrips();
+      showToast(`Updated expense: ${updated.category}.`);
+      return updated;
+    } catch (err) {
+      showToast(err.message || 'Failed to update expense.', 'error');
+      throw err;
+    }
+  };
+
+  const deleteExpense = (tripId, expenseId) => {
+    if (!currentUser) return false;
+    try {
+      const success = storageService.deleteExpense(tripId, expenseId, currentUser.id);
+      if (success) {
+        refreshTrips();
+        showToast('Expense removed from budget log.', 'info');
+      }
+      return success;
+    } catch (err) {
+      showToast(err.message || 'Failed to remove expense.', 'error');
+      throw err;
+    }
+  };
+
+  const setTripBudget = (tripId, totalBudget) => {
+    if (!currentUser) return null;
+    try {
+      const updated = storageService.setTripBudget(tripId, totalBudget, currentUser.id);
+      refreshTrips();
+      showToast(`Trip budget updated to ${updated.currency} ${Number(totalBudget).toLocaleString()}!`);
+      return updated;
+    } catch (err) {
+      showToast(err.message || 'Failed to update budget.', 'error');
+      throw err;
+    }
+  };
+
   return (
     <TripContext.Provider
       value={{
@@ -235,7 +290,11 @@ export function TripProvider({ children }) {
         addActivity,
         updateActivity,
         deleteActivity,
-        toggleActivityBooking
+        toggleActivityBooking,
+        addExpense,
+        updateExpense,
+        deleteExpense,
+        setTripBudget
       }}
     >
       {children}
