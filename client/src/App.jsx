@@ -1,16 +1,73 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TripProvider, useTrips } from './context/TripContext';
 import { Navbar } from './components/Navbar';
 import { AuthCard } from './components/auth/AuthCard';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { TripDetailShell } from './components/dashboard/TripDetailShell';
+import { PublicShareView } from './components/share/PublicShareView';
+import { UserProfileModal } from './components/profile/UserProfileModal';
+import { AdminAnalyticsDashboard } from './components/admin/AdminAnalyticsDashboard';
 import { Toast } from './components/common/Toast';
+import { storageService } from './services/storageService';
 import { Sparkles } from 'lucide-react';
 
 function AppContent() {
   const { currentUser, loading } = useAuth();
-  const { selectedTrip, selectTrip, clearSelectedTrip, toast } = useTrips();
+  const { selectedTrip, selectTrip, clearSelectedTrip, toast, showToast, createTrip } = useTrips();
+
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [sharedTrip, setSharedTrip] = useState(null);
+
+  // Hash-based Public Share Viewer (#share/:token)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#share/')) {
+        const token = hash.replace('#share/', '').trim();
+        const foundTrip = storageService.getTripByShareToken(token);
+        setSharedTrip(foundTrip || null);
+      } else {
+        setSharedTrip(null);
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const handleNavigateHome = () => {
+    window.location.hash = '';
+    setSharedTrip(null);
+    setIsAdminOpen(false);
+    clearSelectedTrip();
+  };
+
+  const handleCopySharedTrip = async (tripToCopy) => {
+    if (!currentUser) {
+      if (showToast) showToast('Please log in or use Demo Login to clone this trip to your account.', 'warning');
+      return;
+    }
+    try {
+      const cloned = await createTrip({
+        title: `${tripToCopy.title} (Clone)`,
+        description: tripToCopy.description,
+        startDate: tripToCopy.startDate,
+        endDate: tripToCopy.endDate,
+        totalBudget: tripToCopy.totalBudget,
+        currency: tripToCopy.currency || 'USD',
+        coverImage: tripToCopy.coverImage,
+        stops: tripToCopy.stops || []
+      });
+      handleNavigateHome();
+      if (showToast) showToast(`Successfully cloned "${tripToCopy.title}" into your trips!`);
+      if (cloned) selectTrip(cloned);
+    } catch (err) {
+      if (showToast) showToast('Failed to clone trip.', 'error');
+    }
+  };
 
   if (loading) {
     return (
@@ -35,19 +92,46 @@ function AppContent() {
           }}
         />
         <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-          Loading GlobeTrotter...
+          Loading GlobeTrotter Travel Studio...
         </p>
+      </div>
+    );
+  }
+
+  // Render Public Shared Itinerary View if hash is #share/:token
+  if (sharedTrip) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <Navbar
+          onNavigateHome={handleNavigateHome}
+          onOpenProfile={() => setIsProfileOpen(true)}
+          onOpenAdmin={() => setIsAdminOpen(true)}
+        />
+        <main style={{ flex: 1, padding: '1.5rem 1rem 3rem 1rem' }}>
+          <PublicShareView
+            trip={sharedTrip}
+            onCopyTrip={handleCopySharedTrip}
+            onNavigateHome={handleNavigateHome}
+          />
+        </main>
+        <Toast toast={toast} />
       </div>
     );
   }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar onNavigateHome={clearSelectedTrip} />
+      <Navbar
+        onNavigateHome={handleNavigateHome}
+        onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenAdmin={() => setIsAdminOpen(true)}
+      />
 
       <main style={{ flex: 1, padding: '1.5rem 1rem 3rem 1rem' }}>
         {currentUser ? (
-          selectedTrip ? (
+          isAdminOpen ? (
+            <AdminAnalyticsDashboard onBack={() => setIsAdminOpen(false)} />
+          ) : selectedTrip ? (
             <TripDetailShell trip={selectedTrip} onBack={clearSelectedTrip} />
           ) : (
             <Dashboard onOpenTrip={selectTrip} />
@@ -88,6 +172,12 @@ function AppContent() {
           </div>
         )}
       </main>
+
+      {/* Traveler Profile & Settings Modal */}
+      <UserProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
 
       {/* Global Toast Notification */}
       <Toast toast={toast} />

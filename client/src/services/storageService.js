@@ -244,6 +244,29 @@ export const storageService = {
     }
   },
 
+  getAllTrips() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    } catch {
+      return [];
+    }
+  },
+
+  getTripByShareToken(token) {
+    if (!token) return null;
+    try {
+      const allTrips = this.getAllTrips();
+      const trip = allTrips.find(t => t.shareToken === token || t.id === token);
+      if (!trip) return null;
+      if (trip.stops && trip.stops.length > 0) {
+        trip.stops.sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+      }
+      return trip;
+    } catch {
+      return null;
+    }
+  },
+
   getTripById(tripId, userId) {
     if (!tripId || !userId) return null;
     const trips = this.getTrips(userId);

@@ -3,7 +3,7 @@ import { Compass, Sparkles, LogOut, ShieldCheck, Wifi, WifiOff } from 'lucide-re
 import { useAuth } from '../context/AuthContext';
 import { useOfflineStatus } from '../services/offlineService';
 
-export function Navbar({ onNavigateHome }) {
+export function Navbar({ onNavigateHome, onOpenProfile, onOpenAdmin }) {
   const { currentUser, logout, loginAsDemo } = useAuth();
   const { isOnline } = useOfflineStatus();
 
@@ -135,11 +135,36 @@ export function Navbar({ onNavigateHome }) {
           )}
         </div>
 
-        {/* User Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        {/* User Controls & Admin/Profile Portal */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           {currentUser ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* Admin Analytics Portal Button */}
+              {onOpenAdmin && (
+                <button
+                  onClick={onOpenAdmin}
+                  className="btn btn-secondary btn-sm"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    fontSize: '0.75rem',
+                    padding: '4px 10px',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    borderColor: 'rgba(239, 68, 68, 0.3)',
+                    color: '#fca5a5'
+                  }}
+                  title="Open Admin Analytics Dashboard"
+                >
+                  <ShieldCheck size={13} />
+                  <span>Admin Portal</span>
+                </button>
+              )}
+
+              {/* User Profile Trigger Pill */}
               <div
+                onClick={onOpenProfile}
+                title="Click to view & edit Profile Preferences"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -147,7 +172,9 @@ export function Navbar({ onNavigateHome }) {
                   padding: '4px 10px 4px 6px',
                   borderRadius: 'var(--radius-full)',
                   background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
                 }}
               >
                 <img
@@ -159,8 +186,8 @@ export function Navbar({ onNavigateHome }) {
                   <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.1 }}>
                     {currentUser.name}
                   </span>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>
-                    {currentUser.email}
+                  <span style={{ fontSize: '0.65rem', color: '#38bdf8' }}>
+                    Profile Settings ⚙️
                   </span>
                 </div>
               </div>
