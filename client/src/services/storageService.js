@@ -29,18 +29,53 @@ export const storageService = {
       localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify([demoUser]));
     }
 
-    // 2. Relational Trips Table - Seed with demo multi-city voyages if empty
-    const existingTrips = localStorage.getItem(STORAGE_KEY_TRIPS);
-    if (!existingTrips || JSON.parse(existingTrips).length === 0) {
+    // 2. Relational Trips Table - Seed or migrate demo multi-city voyages
+    const existingTripsRaw = localStorage.getItem(STORAGE_KEY_TRIPS);
+    if (!existingTripsRaw || JSON.parse(existingTripsRaw).length === 0) {
       const seededTrips = INITIAL_TRIPS.map(t => ({
         ...t,
         userId: 'user-demo-1',
         stops: (t.stops || []).map((s, idx) => ({
           ...s,
-          orderIndex: typeof s.orderIndex === 'number' ? s.orderIndex : idx
+          orderIndex: typeof s.orderIndex === 'number' ? s.orderIndex : idx,
+          activities: s.activities || []
         }))
       }));
       localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(seededTrips));
+    } else {
+      // Auto-migrate any existing demo trips to include rich activities if they were saved with older format
+      try {
+        const trips = JSON.parse(existingTripsRaw);
+        let changed = false;
+        trips.forEach(trip => {
+          if (trip.userId === 'user-demo-1') {
+            const initialMatch = INITIAL_TRIPS.find(it => it.id === trip.id);
+            if (initialMatch && trip.stops) {
+              trip.stops.forEach(stop => {
+                const initialStop = initialMatch.stops?.find(is => is.id === stop.id || is.cityName === stop.cityName);
+                if (initialStop && (!stop.activities || stop.activities.length === 0 || stop.activities.some(a => !a.durationHours || !a.timeSlot))) {
+                  stop.activities = initialStop.activities || [];
+                  changed = true;
+                }
+              });
+            }
+          }
+          // Ensure all stops have activities array
+          if (trip.stops) {
+            trip.stops.forEach(stop => {
+              if (!Array.isArray(stop.activities)) {
+                stop.activities = [];
+                changed = true;
+              }
+            });
+          }
+        });
+        if (changed) {
+          localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(trips));
+        }
+      } catch (err) {
+        console.error('Error during trips migration:', err);
+      }
     }
 
     if (!localStorage.getItem(STORAGE_KEY_STOPS)) {
@@ -424,6 +459,105 @@ export const storageService = {
 
     localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
     return trip.stops;
+  },
+
+  /**
+   * Activities & Experience Management Layer (Hour 4)
+   * Schema: { id, title, category, cost, durationHours, timeSlot, isBooked, locationNotes }
+   * Categories: Sightseeing, Food & Dining, Culture, Adventure, Relaxation
+   */
+  addActivity(tripId, stopId, activityData, userId) {
+    if (!tripId || !stopId || !userId) throw new Error('Trip ID, stop ID, and user authentication required.');
+    const title = (activityData.title || '').trim();
+    if (!title) throw new Error('Activity title is required.');
+
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip || !trip.stops) throw new Error('Trip or stops not found.');
+
+    const stop = trip.stops.find(s => s.id === stopId);
+    if (!stop) throw new Error('City stop not found.');
+
+    if (!Array.isArray(stop.activities)) {
+      stop.activities = [];
+    }
+
+    const newActivity = {
+      id: activityData.id || `act-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      title,
+      category: activityData.category || 'Sightseeing',
+      cost: typeof activityData.cost === 'number' ? Math.max(0, activityData.cost) : (Number(activityData.cost) || 0),
+      durationHours: typeof activityData.durationHours === 'number' ? Math.max(0.5, activityData.durationHours) : (Number(activityData.durationHours) || 1.5),
+      timeSlot: activityData.timeSlot || 'Morning',
+      isBooked: Boolean(activityData.isBooked),
+      locationNotes: (activityData.locationNotes || '').trim()
+    };
+
+    stop.activities.push(newActivity);
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return newActivity;
+  },
+
+  updateActivity(tripId, stopId, activityId, activityData, userId) {
+    if (!tripId || !stopId || !activityId || !userId) throw new Error('Trip ID, stop ID, activity ID and user auth required.');
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip || !trip.stops) throw new Error('Trip or stops not found.');
+
+    const stop = trip.stops.find(s => s.id === stopId);
+    if (!stop || !Array.isArray(stop.activities)) throw new Error('Stop or activities not found.');
+
+    const activity = stop.activities.find(a => a.id === activityId);
+    if (!activity) throw new Error('Activity not found.');
+
+    if (activityData.title !== undefined) activity.title = (activityData.title || '').trim();
+    if (activityData.category !== undefined) activity.category = activityData.category;
+    if (activityData.cost !== undefined) activity.cost = Math.max(0, Number(activityData.cost) || 0);
+    if (activityData.durationHours !== undefined) activity.durationHours = Math.max(0.25, Number(activityData.durationHours) || 1);
+    if (activityData.timeSlot !== undefined) activity.timeSlot = activityData.timeSlot;
+    if (activityData.isBooked !== undefined) activity.isBooked = Boolean(activityData.isBooked);
+    if (activityData.locationNotes !== undefined) activity.locationNotes = (activityData.locationNotes || '').trim();
+
+    trip.updatedAt = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return activity;
+  },
+
+  deleteActivity(tripId, stopId, activityId, userId) {
+    if (!tripId || !stopId || !activityId || !userId) return false;
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip || !trip.stops) return false;
+
+    const stop = trip.stops.find(s => s.id === stopId);
+    if (!stop || !Array.isArray(stop.activities)) return false;
+
+    stop.activities = stop.activities.filter(a => a.id !== activityId);
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return true;
+  },
+
+  toggleActivityBooking(tripId, stopId, activityId, userId) {
+    if (!tripId || !stopId || !activityId || !userId) throw new Error('Missing parameters to toggle booking.');
+    const allTrips = JSON.parse(localStorage.getItem(STORAGE_KEY_TRIPS) || '[]');
+    const trip = allTrips.find(t => t.id === tripId && t.userId === userId);
+    if (!trip || !trip.stops) throw new Error('Trip or stops not found.');
+
+    const stop = trip.stops.find(s => s.id === stopId);
+    if (!stop || !Array.isArray(stop.activities)) throw new Error('Stop or activities not found.');
+
+    const activity = stop.activities.find(a => a.id === activityId);
+    if (!activity) throw new Error('Activity not found.');
+
+    activity.isBooked = !activity.isBooked;
+    trip.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEY_TRIPS, JSON.stringify(allTrips));
+    return activity;
   }
 };
 

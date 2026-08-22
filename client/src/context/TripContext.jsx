@@ -154,6 +154,65 @@ export function TripProvider({ children }) {
     }
   };
 
+  // --- Activities Management Actions (Hour 4) ---
+  const addActivity = (tripId, stopId, activityData) => {
+    if (!currentUser) return null;
+    try {
+      const newActivity = storageService.addActivity(tripId, stopId, activityData, currentUser.id);
+      refreshTrips();
+      showToast(`Added activity "${newActivity.title}"!`);
+      return newActivity;
+    } catch (err) {
+      showToast(err.message || 'Failed to add activity.', 'error');
+      throw err;
+    }
+  };
+
+  const updateActivity = (tripId, stopId, activityId, activityData) => {
+    if (!currentUser) return null;
+    try {
+      const updated = storageService.updateActivity(tripId, stopId, activityId, activityData, currentUser.id);
+      refreshTrips();
+      showToast(`Updated "${updated.title}".`);
+      return updated;
+    } catch (err) {
+      showToast(err.message || 'Failed to update activity.', 'error');
+      throw err;
+    }
+  };
+
+  const deleteActivity = (tripId, stopId, activityId) => {
+    if (!currentUser) return false;
+    try {
+      const success = storageService.deleteActivity(tripId, stopId, activityId, currentUser.id);
+      if (success) {
+        refreshTrips();
+        showToast('Activity removed from itinerary.', 'info');
+      }
+      return success;
+    } catch (err) {
+      showToast(err.message || 'Failed to remove activity.', 'error');
+      throw err;
+    }
+  };
+
+  const toggleActivityBooking = (tripId, stopId, activityId) => {
+    if (!currentUser) return null;
+    try {
+      const updated = storageService.toggleActivityBooking(tripId, stopId, activityId, currentUser.id);
+      refreshTrips();
+      showToast(
+        updated.isBooked
+          ? `Marked "${updated.title}" as Booked!`
+          : `Marked "${updated.title}" as Planned.`
+      );
+      return updated;
+    } catch (err) {
+      showToast(err.message || 'Failed to update booking status.', 'error');
+      throw err;
+    }
+  };
+
   return (
     <TripContext.Provider
       value={{
@@ -172,7 +231,11 @@ export function TripProvider({ children }) {
         updateStop,
         deleteStop,
         moveStop,
-        reorderStops
+        reorderStops,
+        addActivity,
+        updateActivity,
+        deleteActivity,
+        toggleActivityBooking
       }}
     >
       {children}

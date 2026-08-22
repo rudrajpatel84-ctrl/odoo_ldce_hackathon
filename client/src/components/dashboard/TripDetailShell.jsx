@@ -13,10 +13,15 @@ import {
   Navigation,
   Sparkles,
   LayoutList,
-  GitCommit
+  GitCommit,
+  CheckCircle2,
+  Compass,
+  Wallet,
+  TrendingUp
 } from 'lucide-react';
 import { useTrips } from '../../context/TripContext';
 import { StopModal } from '../trip-studio/StopModal';
+import { ActivityPlanner } from '../ActivityPlanner';
 
 export function TripDetailShell({ trip, onBack }) {
   const { deleteTrip, addStop, updateStop, deleteStop, moveStop } = useTrips();
@@ -28,6 +33,20 @@ export function TripDetailShell({ trip, onBack }) {
   if (!trip) return null;
 
   const stops = trip.stops || [];
+
+  // Real-time aggregates across the entire voyage (Hour 4 real-time sync & budget)
+  const totalActivitiesCount = stops.reduce((sum, s) => sum + (s.activities?.length || 0), 0);
+  const totalActivityExpenses = stops.reduce((sum, s) => {
+    return sum + (s.activities || []).reduce((actSum, a) => actSum + (Number(a.cost) || 0), 0);
+  }, 0);
+  const totalBookedActivities = stops.reduce((sum, s) => {
+    return sum + (s.activities || []).filter(a => a.isBooked).length;
+  }, 0);
+  const totalPlannedActivities = totalActivitiesCount - totalBookedActivities;
+  const totalAllocatedStopBudget = stops.reduce((sum, s) => sum + (Number(s.budgetAllocation) || 0), 0);
+  const overallBookingProgress = totalActivitiesCount > 0
+    ? Math.round((totalBookedActivities / totalActivitiesCount) * 100)
+    : 0;
 
   const formatDateRange = () => {
     if (!trip.startDate) return 'Dates TBD';
@@ -137,7 +156,7 @@ export function TripDetailShell({ trip, onBack }) {
         style={{
           padding: '2rem',
           background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(17, 24, 39, 0.85) 100%)',
-          marginBottom: '1.75rem',
+          marginBottom: '1.25rem',
           border: '1px solid rgba(56, 189, 248, 0.25)'
         }}
       >
@@ -202,10 +221,175 @@ export function TripDetailShell({ trip, onBack }) {
         </h1>
 
         {trip.description && (
-          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
             {trip.description}
           </p>
         )}
+      </div>
+
+      {/* Real-time Trip Budget & Activities Pulse Bar (Hour 4 Sync Overview) */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '0.85rem',
+          marginBottom: '1.75rem'
+        }}
+      >
+        {/* Metric 1: Total Trip Budget */}
+        <div
+          className="glass-card animate-fade-in"
+          style={{
+            padding: '1rem',
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.6))',
+            border: '1px solid rgba(56, 189, 248, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}
+        >
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              background: 'rgba(56, 189, 248, 0.15)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#38bdf8'
+            }}
+          >
+            <Wallet size={20} />
+          </div>
+          <div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Target Budget
+            </span>
+            <h4 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: 700, margin: 0 }}>
+              {formatCurrency(trip.totalBudget, trip.currency)}
+            </h4>
+          </div>
+        </div>
+
+        {/* Metric 2: Live Activity Expenses */}
+        <div
+          className="glass-card animate-fade-in"
+          style={{
+            padding: '1rem',
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.6))',
+            border: '1px solid rgba(16, 185, 129, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}
+        >
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              background: 'rgba(16, 185, 129, 0.15)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#34d399'
+            }}
+          >
+            <TrendingUp size={20} />
+          </div>
+          <div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Live Activity Total
+            </span>
+            <h4 style={{ fontSize: '1.25rem', color: '#34d399', fontWeight: 700, margin: 0 }}>
+              {formatCurrency(totalActivityExpenses, trip.currency)}
+            </h4>
+          </div>
+        </div>
+
+        {/* Metric 3: City Budget Allocations */}
+        <div
+          className="glass-card animate-fade-in"
+          style={{
+            padding: '1rem',
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.6))',
+            border: '1px solid rgba(168, 85, 247, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}
+        >
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              background: 'rgba(168, 85, 247, 0.15)',
+              border: '1px solid rgba(168, 85, 247, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#c084fc'
+            }}
+          >
+            <DollarSign size={20} />
+          </div>
+          <div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Stops Allocated
+            </span>
+            <h4 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: 700, margin: 0 }}>
+              {formatCurrency(totalAllocatedStopBudget, trip.currency)}
+            </h4>
+          </div>
+        </div>
+
+        {/* Metric 4: Booked vs Planned Readiness */}
+        <div
+          className="glass-card animate-fade-in"
+          style={{
+            padding: '1rem',
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.6))',
+            border: '1px solid rgba(56, 189, 248, 0.25)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            gap: '6px'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Activities Booked
+            </span>
+            <span style={{ fontSize: '0.78rem', color: overallBookingProgress === 100 ? '#6ee7b7' : '#38bdf8', fontWeight: 700 }}>
+              {overallBookingProgress}%
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+            <h4 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: 700, margin: 0 }}>
+              {totalBookedActivities}
+            </h4>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              of {totalActivitiesCount} experiences confirmed
+            </span>
+          </div>
+
+          {/* Mini progress line */}
+          <div style={{ width: '100%', height: '4px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: `${overallBookingProgress}%`,
+                height: '100%',
+                background: overallBookingProgress === 100 ? '#10b981' : 'linear-gradient(90deg, #38bdf8, #a855f7)',
+                borderRadius: '2px'
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* View Toggle Bar & Action */}
@@ -276,6 +460,10 @@ export function TripDetailShell({ trip, onBack }) {
                 const isLast = index === stops.length - 1;
                 const nextStop = !isLast ? stops[index + 1] : null;
 
+                const stopActivities = stop.activities || [];
+                const stopTotalExpense = stopActivities.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
+                const stopBookedCount = stopActivities.filter(a => a.isBooked).length;
+
                 return (
                   <div
                     key={stop.id || index}
@@ -330,7 +518,7 @@ export function TripDetailShell({ trip, onBack }) {
                             )}
                           </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#38bdf8' }}>
                               <Calendar size={13} />
                               {stop.arrivalDate} – {stop.departureDate}
@@ -347,7 +535,7 @@ export function TripDetailShell({ trip, onBack }) {
                               <>
                                 <span>•</span>
                                 <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>
-                                  Budget: {formatCurrency(stop.budgetAllocation, trip.currency)}
+                                  Stop Budget: {formatCurrency(stop.budgetAllocation, trip.currency)}
                                 </span>
                               </>
                             )}
@@ -424,6 +612,14 @@ export function TripDetailShell({ trip, onBack }) {
                           💡 <strong style={{ color: 'var(--text-main)' }}>Notes & Logistics:</strong> {stop.notes}
                         </div>
                       )}
+
+                      {/* Hour 4: Embedded Activity Planner for this Stop */}
+                      <ActivityPlanner
+                        tripId={trip.id}
+                        stop={stop}
+                        currency={trip.currency}
+                        isCollapsedDefault={false}
+                      />
                     </div>
 
                     {/* Transit Leg Indicator */}
@@ -454,7 +650,7 @@ export function TripDetailShell({ trip, onBack }) {
           </div>
         ) : (
           /* Cards Grid View */
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.25rem' }}>
             {stops.map((stop, index) => {
               const isFirst = index === 0;
               const isLast = index === stops.length - 1;
@@ -530,6 +726,14 @@ export function TripDetailShell({ trip, onBack }) {
                         {stop.notes}
                       </p>
                     )}
+
+                    {/* Embedded Activity Planner in Cards view */}
+                    <ActivityPlanner
+                      tripId={trip.id}
+                      stop={stop}
+                      currency={trip.currency}
+                      isCollapsedDefault={true}
+                    />
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)' }}>
@@ -540,7 +744,7 @@ export function TripDetailShell({ trip, onBack }) {
                       style={{ padding: '4px 8px', fontSize: '0.75rem' }}
                     >
                       <Edit2 size={12} />
-                      <span>Edit</span>
+                      <span>Edit Stop</span>
                     </button>
                     <button
                       type="button"
@@ -612,4 +816,3 @@ export function TripDetailShell({ trip, onBack }) {
     </div>
   );
 }
-

@@ -1,13 +1,13 @@
 export const INITIAL_TRIPS = [
   {
     id: "trip-japan-2026",
-    userId: "demo-user-1",
-    title: "Cherry Blossom Grand Tour",
-    description: "A 10-day immersive adventure through neon metropolises, historic shrines, and serene onsens in Tokyo, Kyoto, and Osaka.",
+    userId: "user-demo-1",
+    title: "Japan Golden Route: Cherry Blossom Voyage",
+    description: "A 10-day immersive adventure through neon metropolises, historic shrines, culinary hotspots, and serene bamboo forests in Tokyo, Kyoto, and Osaka.",
     coverImage: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
     startDate: "2026-04-02",
     endDate: "2026-04-12",
-    totalBudget: 4200,
+    totalBudget: 4500,
     currency: "USD",
     isPublic: true,
     shareToken: "gt-share-japan-sakura-8821",
@@ -22,55 +22,57 @@ export const INITIAL_TRIPS = [
         departureDate: "2026-04-06",
         orderIndex: 0,
         budgetAllocation: 1800,
-        notes: "Staying in Shinjuku. JR Rail Pass activated at Haneda Airport.",
+        notes: "Staying in Shinjuku. JR Rail Pass activated at Haneda Airport. Fast-paced metropolis leg.",
         activities: [
           {
             id: "act-t1",
-            tripStopId: "stop-tokyo",
-            title: "Check-in at Hotel Gracery Shinjuku",
-            category: "Stay",
-            date: "2026-04-02",
-            time: "15:00",
-            cost: 650,
-            notes: "Godzilla head viewing deck on 8th floor",
-            isCompleted: true,
-            orderIndex: 0
+            title: "Tsukiji Outer Market Gourmet Seafood Tour",
+            category: "Food & Dining",
+            cost: 85,
+            durationHours: 2.5,
+            timeSlot: "Morning",
+            isBooked: true,
+            locationNotes: "Meeting at Tsukiji Station Exit 1. Sample fresh sashimi, tamagoyaki, and A5 wagyu skewers."
           },
           {
             id: "act-t2",
-            tripStopId: "stop-tokyo",
-            title: "Omoide Yokocho Yakitori Alley Food Crawl",
-            category: "Food",
-            date: "2026-04-02",
-            time: "19:30",
-            cost: 85,
-            notes: "Try grilled skewers and local craft beer",
-            isCompleted: true,
-            orderIndex: 1
+            title: "teamLab Planets Immersive Digital Art",
+            category: "Culture",
+            cost: 42,
+            durationHours: 2,
+            timeSlot: "Afternoon",
+            isBooked: true,
+            locationNotes: "Toyosu district. Barefoot water exhibit, bring shorts or rollable pants."
           },
           {
             id: "act-t3",
-            tripStopId: "stop-tokyo",
-            title: "teamLab Planets Immersive Art Museum",
+            title: "Shibuya Sky Sunset Observation Deck & Crossing",
             category: "Sightseeing",
-            date: "2026-04-03",
-            time: "10:30",
-            cost: 60,
-            notes: "Water exhibit requires barefoot entry",
-            isCompleted: false,
-            orderIndex: 2
+            cost: 25,
+            durationHours: 1.5,
+            timeSlot: "Evening",
+            isBooked: false,
+            locationNotes: "Rooftop deck 229m above Shibuya Crossing. Book timed sunset slot at 17:30."
           },
           {
             id: "act-t4",
-            tripStopId: "stop-tokyo",
-            title: "Shinkansen Bullet Train to Kyoto (Hikari 509)",
-            category: "Transport",
-            date: "2026-04-06",
-            time: "09:00",
-            cost: 140,
-            notes: "Right side seats for Mount Fuji view",
-            isCompleted: false,
-            orderIndex: 3
+            title: "Omoide Yokocho & Golden Gai Izakaya Walk",
+            category: "Food & Dining",
+            cost: 70,
+            durationHours: 3,
+            timeSlot: "Night",
+            isBooked: false,
+            locationNotes: "Shinjuku alleys. Cash-only micro bars with authentic yakitori and local sake."
+          },
+          {
+            id: "act-t5",
+            title: "Akihabara VR & Retro Arcade Experience",
+            category: "Adventure",
+            cost: 50,
+            durationHours: 2,
+            timeSlot: "Afternoon",
+            isBooked: false,
+            locationNotes: "Radio Kaikan and Super Potato arcade gaming floors."
           }
         ]
       },
@@ -82,44 +84,48 @@ export const INITIAL_TRIPS = [
         arrivalDate: "2026-04-06",
         departureDate: "2026-04-09",
         orderIndex: 1,
-        budgetAllocation: 1400,
-        notes: "Traditional Ryokan experience in Gion district.",
+        budgetAllocation: 1500,
+        notes: "Traditional Ryokan experience in Gion district. Cultural heart of Japan.",
         activities: [
           {
             id: "act-k1",
-            tripStopId: "stop-kyoto",
             title: "Fushimi Inari Torii Gates Sunrise Hike",
             category: "Sightseeing",
-            date: "2026-04-07",
-            time: "06:30",
             cost: 0,
-            notes: "Early start to beat tour crowds",
-            isCompleted: false,
-            orderIndex: 0
+            durationHours: 2.5,
+            timeSlot: "Morning",
+            isBooked: true,
+            locationNotes: "Start before 06:30 AM to hike the 10,000 vermilion torii gates without tourist crowds."
           },
           {
             id: "act-k2",
-            tripStopId: "stop-kyoto",
-            title: "Multi-course Kaiseki Dinner at Gion Karyo",
-            category: "Food",
-            date: "2026-04-07",
-            time: "18:30",
-            cost: 220,
-            notes: "Reservation confirmed. Smart casual dress code.",
-            isCompleted: false,
-            orderIndex: 1
+            title: "Traditional Match Tea Ceremony in Gion",
+            category: "Culture",
+            cost: 65,
+            durationHours: 1.5,
+            timeSlot: "Afternoon",
+            isBooked: true,
+            locationNotes: "Historic teahouse near Yasaka Shrine. Kimono rental optional."
           },
           {
             id: "act-k3",
-            tripStopId: "stop-kyoto",
-            title: "Arashiyama Bamboo Grove & Monkey Park",
-            category: "Activity",
-            date: "2026-04-08",
-            time: "11:00",
-            cost: 45,
-            notes: "Rent bicycles near Saga-Arashiyama station",
-            isCompleted: false,
-            orderIndex: 2
+            title: "Arashiyama Bamboo Grove & Tenryu-ji Temple",
+            category: "Relaxation",
+            cost: 30,
+            durationHours: 3,
+            timeSlot: "Morning",
+            isBooked: false,
+            locationNotes: "Rent bicycles at Saga-Arashiyama Station to explore the river and grove."
+          },
+          {
+            id: "act-k4",
+            title: "Multi-course Kaiseki Dinner at Gion Karyo",
+            category: "Food & Dining",
+            cost: 180,
+            durationHours: 2.5,
+            timeSlot: "Evening",
+            isBooked: true,
+            locationNotes: "Seasonal Michelin-grade tasting menu. Reservation confirmed for 19:00."
           }
         ]
       },
@@ -131,32 +137,38 @@ export const INITIAL_TRIPS = [
         arrivalDate: "2026-04-09",
         departureDate: "2026-04-12",
         orderIndex: 2,
-        budgetAllocation: 1000,
-        notes: "Gastronomy and nightlife capital.",
+        budgetAllocation: 1200,
+        notes: "Gastronomy and nightlife capital. Tennoji & Dotonbori base.",
         activities: [
           {
             id: "act-o1",
-            tripStopId: "stop-osaka",
             title: "Dotonbori Street Food Discovery Tour",
-            category: "Food",
-            date: "2026-04-09",
-            time: "18:00",
-            cost: 95,
-            notes: "Takoyaki, Okonomiyaki, and Kushikatsu tasting",
-            isCompleted: false,
-            orderIndex: 0
+            category: "Food & Dining",
+            cost: 65,
+            durationHours: 2.5,
+            timeSlot: "Evening",
+            isBooked: true,
+            locationNotes: "Taste freshly made takoyaki, okonomiyaki, and kushikatsu by the canal."
           },
           {
             id: "act-o2",
-            tripStopId: "stop-osaka",
-            title: "Osaka Castle & Park Gardens Walk",
+            title: "Osaka Castle Park & Keep Observation Walk",
             category: "Sightseeing",
-            date: "2026-04-10",
-            time: "10:00",
-            cost: 30,
-            notes: "Main tower observation deck",
-            isCompleted: false,
-            orderIndex: 1
+            cost: 20,
+            durationHours: 2,
+            timeSlot: "Morning",
+            isBooked: false,
+            locationNotes: "Main tower 8th-floor panoramic view of Osaka skyline."
+          },
+          {
+            id: "act-o3",
+            title: "Spa World Natural Onsen & Relaxation Baths",
+            category: "Relaxation",
+            cost: 35,
+            durationHours: 3,
+            timeSlot: "Afternoon",
+            isBooked: false,
+            locationNotes: "Shinsekai district. European and Asian-themed hot springs."
           }
         ]
       }
@@ -169,13 +181,13 @@ export const INITIAL_TRIPS = [
   },
   {
     id: "trip-italy-2026",
-    userId: "demo-user-1",
-    title: "Italian Riviera & Roman Renaissance",
-    description: "From the cliffside villages of Cinque Terre to the historic Colosseum in Rome and Tuscan vineyards.",
+    userId: "user-demo-1",
+    title: "Italian Renaissance & Tuscan Romance",
+    description: "From ancient Roman monuments and Trastevere culinary workshop to the Uffizi Gallery masterpieces in Florence.",
     coverImage: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1200&q=80",
     startDate: "2026-06-10",
     endDate: "2026-06-18",
-    totalBudget: 3800,
+    totalBudget: 4200,
     currency: "EUR",
     isPublic: true,
     shareToken: "gt-share-italy-coast-3391",
@@ -189,32 +201,48 @@ export const INITIAL_TRIPS = [
         arrivalDate: "2026-06-10",
         departureDate: "2026-06-14",
         orderIndex: 0,
-        budgetAllocation: 2000,
-        notes: "Trastevere apartment rental.",
+        budgetAllocation: 2200,
+        notes: "Trastevere boutique apartment rental. Historic center excursions.",
         activities: [
           {
             id: "act-r1",
-            tripStopId: "stop-rome",
-            title: "Colosseum & Roman Forum VIP Access",
+            title: "Colosseum & Roman Forum VIP Arena Floor Access",
             category: "Sightseeing",
-            date: "2026-06-11",
-            time: "09:30",
             cost: 110,
-            notes: "Underground arena pass included",
-            isCompleted: false,
-            orderIndex: 0
+            durationHours: 3.5,
+            timeSlot: "Morning",
+            isBooked: true,
+            locationNotes: "Skip-the-line gladiator gate entrance. Bring ID and water bottle."
           },
           {
             id: "act-r2",
-            tripStopId: "stop-rome",
-            title: "Trastevere Evening Pasta & Wine Workshop",
-            category: "Food",
-            date: "2026-06-12",
-            time: "18:00",
-            cost: 130,
-            notes: "Making fresh cacio e pepe from scratch",
-            isCompleted: false,
-            orderIndex: 1
+            title: "Trastevere Handmade Pasta & Chianti Masterclass",
+            category: "Food & Dining",
+            cost: 95,
+            durationHours: 3,
+            timeSlot: "Evening",
+            isBooked: true,
+            locationNotes: "Cooking school on Via della Lungaretta. Hand-rolling tagliatelle and cacio e pepe."
+          },
+          {
+            id: "act-r3",
+            title: "Vatican Museums & Sistine Chapel Early Entry",
+            category: "Culture",
+            cost: 85,
+            durationHours: 3,
+            timeSlot: "Morning",
+            isBooked: false,
+            locationNotes: "Strict dress code: shoulders and knees covered."
+          },
+          {
+            id: "act-r4",
+            title: "Villa Borghese Sunset Electric Bike Tour",
+            category: "Adventure",
+            cost: 45,
+            durationHours: 2,
+            timeSlot: "Afternoon",
+            isBooked: false,
+            locationNotes: "Piazza del Popolo meeting point. Ride through the gardens to Pincio Terrace."
           }
         ]
       },
@@ -226,20 +254,48 @@ export const INITIAL_TRIPS = [
         arrivalDate: "2026-06-14",
         departureDate: "2026-06-18",
         orderIndex: 1,
-        budgetAllocation: 1800,
-        notes: "Day excursion to Chianti wine valley.",
+        budgetAllocation: 2000,
+        notes: "Art capital of the world. Day excursion planned for Chianti wine country.",
         activities: [
           {
             id: "act-f1",
-            tripStopId: "stop-florence",
-            title: "Uffizi Gallery Masterpieces Tour",
+            title: "Uffizi Gallery Masterpieces Guided Tour",
+            category: "Culture",
+            cost: 75,
+            durationHours: 2.5,
+            timeSlot: "Morning",
+            isBooked: true,
+            locationNotes: "Direct entry to see Botticelli's Birth of Venus and Da Vinci rooms."
+          },
+          {
+            id: "act-f2",
+            title: "Duomo Dome Brunelleschi Climb & Bell Tower",
             category: "Sightseeing",
-            date: "2026-06-15",
-            time: "14:00",
-            cost: 65,
-            notes: "Botticelli's Birth of Venus",
-            isCompleted: false,
-            orderIndex: 0
+            cost: 40,
+            durationHours: 2,
+            timeSlot: "Afternoon",
+            isBooked: false,
+            locationNotes: "463 steps to the cupola summit. Incredible panorama over Tuscany."
+          },
+          {
+            id: "act-f3",
+            title: "Chianti Hills Vineyard Sunset Wine Tasting & Dinner",
+            category: "Food & Dining",
+            cost: 130,
+            durationHours: 4.5,
+            timeSlot: "Evening",
+            isBooked: true,
+            locationNotes: "Roundtrip shuttle from Santa Maria Novella station. 4 wine pairings."
+          },
+          {
+            id: "act-f4",
+            title: "Boboli Gardens & Pitti Palace Stroll",
+            category: "Relaxation",
+            cost: 25,
+            durationHours: 2,
+            timeSlot: "Afternoon",
+            isBooked: false,
+            locationNotes: "Renaissance sculpture park with shade trees and fountain views."
           }
         ]
       }
