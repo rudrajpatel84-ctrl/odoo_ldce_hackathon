@@ -46,11 +46,11 @@ export function UserProfileModal({ isOpen, onClose }) {
     setSavedDestinations(savedDestinations.filter(d => d !== dest));
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
     try {
       if (updateProfile) {
-        updateProfile({
+        await updateProfile({
           name: name.trim(),
           avatar: avatar.trim(),
           preferredCurrency,
@@ -100,11 +100,9 @@ export function UserProfileModal({ isOpen, onClose }) {
               <User size={18} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.15rem', color: '#ffffff', margin: 0, fontWeight: 700 }}>
-                Traveler Profile & Preferences
-              </h3>
+              <h3 style={{ fontSize: '1.2rem', margin: 0 }}>Traveler Profile & Settings</h3>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                Manage personal account info, default currency, and dream wishlist
+                Manage your identity and currency preferences
               </p>
             </div>
           </div>
@@ -114,9 +112,9 @@ export function UserProfileModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <form onSubmit={handleSaveProfile}>
-          <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-            {/* User Header Badge */}
+        <form onSubmit={handleSaveProfile} className="modal-body">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* User Profile Card */}
             <div
               style={{
                 display: 'flex',
@@ -124,29 +122,28 @@ export function UserProfileModal({ isOpen, onClose }) {
                 gap: '14px',
                 padding: '1rem',
                 borderRadius: 'var(--radius-md)',
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.06)'
+                background: 'rgba(56, 189, 248, 0.06)',
+                border: '1px solid rgba(56, 189, 248, 0.2)'
               }}
             >
               <img
-                src={avatar || currentUser.avatar}
-                alt={name}
+                src={avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(currentUser.email || 'traveler')}`}
+                alt="Avatar"
                 style={{
-                  width: '52px',
-                  height: '52px',
+                  width: '56px',
+                  height: '56px',
                   borderRadius: '50%',
-                  objectFit: 'cover',
                   border: '2px solid #38bdf8',
-                  boxShadow: '0 0 12px rgba(56, 189, 248, 0.3)'
+                  objectFit: 'cover'
                 }}
               />
-              <div style={{ flex: 1 }}>
-                <h4 style={{ fontSize: '1.05rem', color: '#ffffff', margin: 0, fontWeight: 700 }}>
-                  {name || currentUser.name}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h4 style={{ margin: 0, fontSize: '1.05rem', color: '#ffffff' }}>
+                  {name || currentUser.name || 'Traveler'}
                 </h4>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                   {currentUser.email}
-                </span>
+                </div>
                 <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
                   <span
                     style={{
@@ -212,11 +209,13 @@ export function UserProfileModal({ isOpen, onClose }) {
                   onChange={(e) => setPreferredCurrency(e.target.value)}
                   className="form-select"
                 >
+                  <option value="INR">₹ INR - Indian Rupee</option>
                   <option value="USD">$ USD - US Dollar</option>
                   <option value="EUR">€ EUR - Euro</option>
                   <option value="GBP">£ GBP - British Pound</option>
-                  <option value="INR">₹ INR - Indian Rupee</option>
                   <option value="JPY">¥ JPY - Japanese Yen</option>
+                  <option value="CAD">CA$ CAD - Canadian Dollar</option>
+                  <option value="AUD">A$ AUD - Australian Dollar</option>
                 </select>
               </div>
 

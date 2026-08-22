@@ -24,11 +24,13 @@ import { AddExpenseModal } from './AddExpenseModal';
 
 // Multi-Currency Exchange Rates relative to USD base
 export const CURRENCY_CONFIG = {
+  'INR': { symbol: '₹', rate: 86.85, name: 'Indian Rupee (INR)' },
   'USD': { symbol: '$', rate: 1.0, name: 'US Dollar (USD)' },
   'EUR': { symbol: '€', rate: 0.92, name: 'Euro (EUR)' },
-  'GBP': { symbol: '£', rate: 0.79, name: 'British Pound (GBP)' },
-  'INR': { symbol: '₹', rate: 83.5, name: 'Indian Rupee (INR)' },
-  'JPY': { symbol: '¥', rate: 155.0, name: 'Japanese Yen (JPY)' }
+  'GBP': { symbol: '£', rate: 0.78, name: 'British Pound (GBP)' },
+  'JPY': { symbol: '¥', rate: 154.5, name: 'Japanese Yen (JPY)' },
+  'CAD': { symbol: 'CA$', rate: 1.38, name: 'Canadian Dollar (CAD)' },
+  'AUD': { symbol: 'A$', rate: 1.52, name: 'Australian Dollar (AUD)' }
 };
 
 export function BudgetDashboard({ trip }) {

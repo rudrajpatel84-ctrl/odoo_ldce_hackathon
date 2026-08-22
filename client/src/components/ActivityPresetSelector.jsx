@@ -15,6 +15,108 @@ import {
 import { CATEGORY_CONFIG } from './ActivityCard';
 
 export const CURATED_PRESETS_BY_CITY = {
+  'Ahmedabad': [
+    {
+      title: 'Sabarmati Ashram & Riverfront Peace Walk',
+      category: 'Culture',
+      cost: 200,
+      durationHours: 2.5,
+      timeSlot: 'Morning',
+      locationNotes: 'Historic headquarters of Mahatma Gandhi overlooking the Sabarmati River.'
+    },
+    {
+      title: 'Adalaj Stepwell Architectural Marvel',
+      category: 'Sightseeing',
+      cost: 300,
+      durationHours: 2,
+      timeSlot: 'Morning',
+      locationNotes: '5-storey deep 15th-century subterranean Solanki-style carved stepwell.'
+    },
+    {
+      title: 'Old City Heritage Walk & Pols',
+      category: 'Culture',
+      cost: 500,
+      durationHours: 3,
+      timeSlot: 'Morning',
+      locationNotes: 'Guided walk through historic wooden-carved Pol neighborhoods and havelis.'
+    },
+    {
+      title: 'Manek Chowk Night Food Market Tour',
+      category: 'Food & Dining',
+      cost: 800,
+      durationHours: 2.5,
+      timeSlot: 'Night',
+      locationNotes: 'Bustling night food hub for chocolate cheese sandwiches, Gwalior dosa, and Ashrafi kulfi.'
+    },
+    {
+      title: 'Sabarmati Riverfront Promenade Cycling',
+      category: 'Adventure',
+      cost: 350,
+      durationHours: 1.5,
+      timeSlot: 'Evening',
+      locationNotes: 'Dedicated waterfront promenade with sunset skyline views and rental bikes.'
+    }
+  ],
+  'Daman': [
+    {
+      title: 'Moti Daman & St. Jerome Fort Exploration',
+      category: 'Sightseeing',
+      cost: 150,
+      durationHours: 3,
+      timeSlot: 'Morning',
+      locationNotes: '16th-century Portuguese fortress walls with colonial cannons facing the Arabian Sea.'
+    },
+    {
+      title: 'Jampore Beach Parasailing & Water Sports',
+      category: 'Adventure',
+      cost: 1800,
+      durationHours: 3.5,
+      timeSlot: 'Afternoon',
+      locationNotes: 'Tranquil black-sand beach with jet-skiing, ATV riding, and parasailing.'
+    },
+    {
+      title: 'Devka Beach Sunset & Seaside Seafood Feast',
+      category: 'Food & Dining',
+      cost: 1600,
+      durationHours: 2.5,
+      timeSlot: 'Evening',
+      locationNotes: 'Coastal seafood shacks serving fresh pomfret fry and prawn curry by the sea.'
+    },
+    {
+      title: 'Church of Bom Jesus & Baroque Chapels',
+      category: 'Culture',
+      cost: 100,
+      durationHours: 1.5,
+      timeSlot: 'Morning',
+      locationNotes: 'Exquisite Portuguese gilded altars and Rosewood carvings.'
+    }
+  ],
+  'Surat': [
+    {
+      title: 'Surat Castle (Old Fort) by Tapi River',
+      category: 'Sightseeing',
+      cost: 200,
+      durationHours: 2,
+      timeSlot: 'Morning',
+      locationNotes: '16th-century defense fortress built against Portuguese marauders.'
+    },
+    {
+      title: 'Chowk Bazaar Surati Locho & Food Tasting',
+      category: 'Food & Dining',
+      cost: 650,
+      durationHours: 2.5,
+      timeSlot: 'Evening',
+      locationNotes: 'Savor piping hot Surati Locho, Sev Khamani, and cold coco shakes.'
+    },
+    {
+      title: 'Dumas Beach Black Sand Sunset Walk',
+      category: 'Relaxation',
+      cost: 100,
+      durationHours: 2,
+      timeSlot: 'Evening',
+      locationNotes: 'Mystical black-sand beach famous for spicy bhajiya and sea breeze.'
+    }
+  ],
   'Tokyo': [
     {
       title: 'Fushimi Inari Torii Sunrise Walk',

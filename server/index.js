@@ -6,6 +6,8 @@ const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
 const tripRoutes = require("./routes/tripRoutes");
+const currencyRoutes = require("./routes/currencyRoutes");
+const recommendationRoutes = require("./routes/recommendationRoutes");
 
 const app = express();
 
@@ -14,6 +16,8 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/trips", tripRoutes);
+app.use("/api/currency", currencyRoutes);
+app.use("/api/recommendations", recommendationRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({
