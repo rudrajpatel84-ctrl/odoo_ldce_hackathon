@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Calendar, DollarSign, Clock, ArrowRight, Trash2, MapPin, Navigation, Eye } from 'lucide-react';
+import { Calendar, DollarSign, Clock, ArrowRight, Trash2, MapPin, Navigation, Eye, Share2 } from 'lucide-react';
 import { SequentialTimelinePreview } from './SequentialTimelinePreview';
+import { ShareModal } from '../share/ShareModal';
 
 export function TripCard({ trip, onOpenTrip, onDeleteTrip }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const formatDateRange = () => {
     if (!trip.startDate) return 'Dates TBD';
@@ -37,7 +39,8 @@ export function TripCard({ trip, onOpenTrip, onDeleteTrip }) {
       GBP: '£',
       JPY: '¥',
       CAD: 'CA$',
-      AUD: 'A$'
+      AUD: 'A$',
+      INR: '₹'
     };
     const symbol = symbols[currency] || '$';
     return `${symbol}${Number(amount || 0).toLocaleString()}`;
@@ -111,15 +114,30 @@ export function TripCard({ trip, onOpenTrip, onDeleteTrip }) {
               )}
             </div>
 
-            <button
-              onClick={handleDeleteClick}
-              className={`btn btn-icon btn-sm ${confirmingDelete ? 'btn-danger' : 'btn-ghost'}`}
-              title={confirmingDelete ? 'Click again to confirm deletion' : 'Delete Trip'}
-              style={{ padding: '4px 8px', fontSize: '0.75rem' }}
-            >
-              <Trash2 size={14} color={confirmingDelete ? '#fca5a5' : 'var(--text-dim)'} />
-              {confirmingDelete && <span>Confirm?</span>}
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsShareOpen(true);
+                }}
+                className="btn btn-icon btn-sm btn-ghost"
+                title="Share Itinerary"
+                style={{ padding: '4px 6px', color: '#38bdf8' }}
+              >
+                <Share2 size={14} />
+              </button>
+
+              <button
+                onClick={handleDeleteClick}
+                className={`btn btn-icon btn-sm ${confirmingDelete ? 'btn-danger' : 'btn-ghost'}`}
+                title={confirmingDelete ? 'Click again to confirm deletion' : 'Delete Trip'}
+                style={{ padding: '4px 6px', fontSize: '0.75rem' }}
+              >
+                <Trash2 size={14} color={confirmingDelete ? '#fca5a5' : 'var(--text-dim)'} />
+                {confirmingDelete && <span style={{ marginLeft: '4px' }}>Confirm?</span>}
+              </button>
+            </div>
           </div>
 
           {/* Title */}
@@ -224,6 +242,17 @@ export function TripCard({ trip, onOpenTrip, onDeleteTrip }) {
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
         onOpenFullTrip={onOpenTrip}
+      />
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        trip={trip}
+        onOpenPublicView={() => {
+          setIsShareOpen(false);
+          window.location.hash = `#share/${trip.shareToken || trip.id}`;
+        }}
       />
     </>
   );

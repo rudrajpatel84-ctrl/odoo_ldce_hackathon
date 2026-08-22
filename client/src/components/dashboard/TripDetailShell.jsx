@@ -18,7 +18,8 @@ import {
   Compass,
   Wallet,
   TrendingUp,
-  FileText
+  FileText,
+  Share2
 } from 'lucide-react';
 import { useTrips } from '../../context/TripContext';
 import { StopModal } from '../trip-studio/StopModal';
@@ -26,6 +27,7 @@ import { ActivityPlanner } from '../ActivityPlanner';
 import { BudgetDashboard } from '../BudgetDashboard';
 import { ExportPdfButton } from '../ExportPdfButton';
 import { PrintableTripDocument } from '../PrintableTripDocument';
+import { ShareModal } from '../share/ShareModal';
 
 export function TripDetailShell({ trip, onBack }) {
   const { deleteTrip, addStop, updateStop, deleteStop, moveStop } = useTrips();
@@ -33,6 +35,7 @@ export function TripDetailShell({ trip, onBack }) {
   const [activeView, setActiveView] = useState('timeline'); // 'timeline' | 'cards' | 'budget' | 'print'
   const [isStopModalOpen, setIsStopModalOpen] = useState(false);
   const [editingStop, setEditingStop] = useState(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   if (!trip) return null;
 
@@ -134,6 +137,17 @@ export function TripDetailShell({ trip, onBack }) {
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {/* Share Itinerary Button */}
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="btn btn-secondary btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.4)' }}
+            title="Share Itinerary Link"
+          >
+            <Share2 size={15} />
+            <span>Share</span>
+          </button>
+
           {/* Hour 6: Export PDF & Print Button */}
           <ExportPdfButton trip={trip} printTargetId="printable-trip-document" />
 
@@ -859,6 +873,17 @@ export function TripDetailShell({ trip, onBack }) {
         onClose={() => setIsStopModalOpen(false)}
         onSave={handleSaveStop}
         initialData={editingStop}
+      />
+
+      {/* Share Itinerary Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        trip={trip}
+        onOpenPublicView={() => {
+          setIsShareModalOpen(false);
+          window.location.hash = `#share/${trip.shareToken || trip.id}`;
+        }}
       />
 
       {/* Off-screen Document for 1-Click PDF Snapshot when not on Print tab */}

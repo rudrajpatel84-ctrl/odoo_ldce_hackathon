@@ -18,29 +18,33 @@ export function TripProvider({ children }) {
     }, 3500);
   };
 
-  const refreshTrips = useCallback(() => {
+  const refreshTrips = useCallback(async () => {
     if (!currentUser) {
       setTrips([]);
       setSelectedTrip(null);
       return;
     }
-    const userTrips = storageService.getTrips(currentUser.id);
-    setTrips(userTrips);
-    if (selectedTrip) {
-      const refreshed = storageService.getTripById(selectedTrip.id, currentUser.id);
-      setSelectedTrip(refreshed);
+    try {
+      const userTrips = await storageService.getTrips(currentUser.id);
+      setTrips(userTrips);
+      if (selectedTrip) {
+        const refreshed = await storageService.getTripById(selectedTrip.id || selectedTrip._id, currentUser.id);
+        if (refreshed) setSelectedTrip(refreshed);
+      }
+    } catch (err) {
+      console.warn('Error refreshing trips:', err);
     }
-  }, [currentUser, selectedTrip?.id]);
+  }, [currentUser, selectedTrip?.id, selectedTrip?._id]);
 
   useEffect(() => {
     refreshTrips();
   }, [currentUser]);
 
-  const createTrip = (tripData) => {
+  const createTrip = async (tripData) => {
     if (!currentUser) throw new Error('You must be signed in to create a trip.');
     try {
-      const newTrip = storageService.createTrip(tripData, currentUser.id);
-      refreshTrips();
+      const newTrip = await storageService.createTrip(tripData, currentUser.id);
+      await refreshTrips();
       showToast(`Trip "${newTrip.title}" planned with ${newTrip.stops?.length || 0} stops!`);
       return newTrip;
     } catch (err) {
@@ -49,11 +53,14 @@ export function TripProvider({ children }) {
     }
   };
 
-  const updateTrip = (tripId, tripData) => {
+  const updateTrip = async (tripId, tripData) => {
     if (!currentUser) return null;
     try {
-      const updated = storageService.updateTrip(tripId, tripData, currentUser.id);
-      refreshTrips();
+      const updated = await storageService.updateTrip(tripId, tripData, currentUser.id);
+      await refreshTrips();
+      if (selectedTrip && (selectedTrip.id === tripId || selectedTrip._id === tripId)) {
+        setSelectedTrip(updated);
+      }
       showToast('Trip updated successfully.');
       return updated;
     } catch (err) {
@@ -62,21 +69,29 @@ export function TripProvider({ children }) {
     }
   };
 
-  const deleteTrip = (tripId) => {
+  const deleteTrip = async (tripId) => {
     if (!currentUser) return;
-    const success = storageService.deleteTrip(tripId, currentUser.id);
-    if (success) {
-      if (selectedTrip?.id === tripId) {
-        setSelectedTrip(null);
+    try {
+      const success = await storageService.deleteTrip(tripId, currentUser.id);
+      if (success) {
+        if (selectedTrip && (selectedTrip.id === tripId || selectedTrip._id === tripId)) {
+          setSelectedTrip(null);
+        }
+        await refreshTrips();
+        showToast('Trip deleted.', 'info');
       }
-      refreshTrips();
-      showToast('Trip deleted.', 'info');
+    } catch (err) {
+      showToast(err.message || 'Failed to delete trip.', 'error');
     }
   };
 
-  const selectTrip = (tripId) => {
+  const selectTrip = async (tripOrId) => {
     if (!currentUser) return;
-    const trip = storageService.getTripById(tripId, currentUser.id);
+    if (typeof tripOrId === 'object' && tripOrId !== null) {
+      setSelectedTrip(tripOrId);
+      return;
+    }
+    const trip = await storageService.getTripById(tripOrId, currentUser.id);
     setSelectedTrip(trip);
   };
 
@@ -85,11 +100,11 @@ export function TripProvider({ children }) {
   };
 
   // --- Stop Management Actions ---
-  const addStop = (tripId, stopData) => {
+  const addStop = async (tripId, stopData) => {
     if (!currentUser) return null;
     try {
-      const newStop = storageService.addStop(tripId, stopData, currentUser.id);
-      refreshTrips();
+      const newStop = await storageService.addStop(tripId, stopData, currentUser.id);
+      await refreshTrips();
       showToast(`Added ${newStop.cityName} to itinerary.`);
       return newStop;
     } catch (err) {
@@ -98,11 +113,11 @@ export function TripProvider({ children }) {
     }
   };
 
-  const updateStop = (tripId, stopId, stopData) => {
+  const updateStop = async (tripId, stopId, stopData) => {
     if (!currentUser) return null;
     try {
-      const updated = storageService.updateStop(tripId, stopId, stopData, currentUser.id);
-      refreshTrips();
+      const updated = await storageService.updateStop(tripId, stopId, stopData, currentUser.id);
+      await refreshTrips();
       showToast(`Updated ${updated.cityName} details.`);
       return updated;
     } catch (err) {
@@ -111,12 +126,12 @@ export function TripProvider({ children }) {
     }
   };
 
-  const deleteStop = (tripId, stopId) => {
+  const deleteStop = async (tripId, stopId) => {
     if (!currentUser) return false;
     try {
-      const success = storageService.deleteStop(tripId, stopId, currentUser.id);
+      const success = await storageService.deleteStop(tripId, stopId, currentUser.id);
       if (success) {
-        refreshTrips();
+        await refreshTrips();
         showToast('City stop removed.', 'info');
       }
       return success;
@@ -126,12 +141,12 @@ export function TripProvider({ children }) {
     }
   };
 
-  const moveStop = (tripId, stopId, direction) => {
+  const moveStop = async (tripId, stopId, direction) => {
     if (!currentUser) return false;
     try {
-      const stops = storageService.moveStop(tripId, stopId, direction, currentUser.id);
+      const stops = await storageService.moveStop(tripId, stopId, direction, currentUser.id);
       if (stops) {
-        refreshTrips();
+        await refreshTrips();
       }
       return stops;
     } catch (err) {
@@ -140,12 +155,12 @@ export function TripProvider({ children }) {
     }
   };
 
-  const reorderStops = (tripId, orderedStopIds) => {
+  const reorderStops = async (tripId, orderedStopIds) => {
     if (!currentUser) return false;
     try {
-      const stops = storageService.reorderStops(tripId, orderedStopIds, currentUser.id);
+      const stops = await storageService.reorderStops(tripId, orderedStopIds, currentUser.id);
       if (stops) {
-        refreshTrips();
+        await refreshTrips();
       }
       return stops;
     } catch (err) {
@@ -155,11 +170,11 @@ export function TripProvider({ children }) {
   };
 
   // --- Activities Management Actions (Hour 4) ---
-  const addActivity = (tripId, stopId, activityData) => {
+  const addActivity = async (tripId, stopId, activityData) => {
     if (!currentUser) return null;
     try {
-      const newActivity = storageService.addActivity(tripId, stopId, activityData, currentUser.id);
-      refreshTrips();
+      const newActivity = await storageService.addActivity(tripId, stopId, activityData, currentUser.id);
+      await refreshTrips();
       showToast(`Added activity "${newActivity.title}"!`);
       return newActivity;
     } catch (err) {
@@ -168,11 +183,11 @@ export function TripProvider({ children }) {
     }
   };
 
-  const updateActivity = (tripId, stopId, activityId, activityData) => {
+  const updateActivity = async (tripId, stopId, activityId, activityData) => {
     if (!currentUser) return null;
     try {
-      const updated = storageService.updateActivity(tripId, stopId, activityId, activityData, currentUser.id);
-      refreshTrips();
+      const updated = await storageService.updateActivity(tripId, stopId, activityId, activityData, currentUser.id);
+      await refreshTrips();
       showToast(`Updated "${updated.title}".`);
       return updated;
     } catch (err) {
@@ -181,12 +196,12 @@ export function TripProvider({ children }) {
     }
   };
 
-  const deleteActivity = (tripId, stopId, activityId) => {
+  const deleteActivity = async (tripId, stopId, activityId) => {
     if (!currentUser) return false;
     try {
-      const success = storageService.deleteActivity(tripId, stopId, activityId, currentUser.id);
+      const success = await storageService.deleteActivity(tripId, stopId, activityId, currentUser.id);
       if (success) {
-        refreshTrips();
+        await refreshTrips();
         showToast('Activity removed from itinerary.', 'info');
       }
       return success;
@@ -196,11 +211,11 @@ export function TripProvider({ children }) {
     }
   };
 
-  const toggleActivityBooking = (tripId, stopId, activityId) => {
+  const toggleActivityBooking = async (tripId, stopId, activityId) => {
     if (!currentUser) return null;
     try {
-      const updated = storageService.toggleActivityBooking(tripId, stopId, activityId, currentUser.id);
-      refreshTrips();
+      const updated = await storageService.toggleActivityBooking(tripId, stopId, activityId, currentUser.id);
+      await refreshTrips();
       showToast(
         updated.isBooked
           ? `Marked "${updated.title}" as Booked!`
@@ -214,11 +229,11 @@ export function TripProvider({ children }) {
   };
 
   // --- Budget & Expenses Management Actions (Hour 5) ---
-  const addExpense = (tripId, expenseData) => {
+  const addExpense = async (tripId, expenseData) => {
     if (!currentUser) return null;
     try {
-      const newExpense = storageService.addExpense(tripId, expenseData, currentUser.id);
-      refreshTrips();
+      const newExpense = await storageService.addExpense(tripId, expenseData, currentUser.id);
+      await refreshTrips();
       showToast(`Logged expense: ${newExpense.category} (${newExpense.currency} ${newExpense.amount})`);
       return newExpense;
     } catch (err) {
@@ -227,11 +242,11 @@ export function TripProvider({ children }) {
     }
   };
 
-  const updateExpense = (tripId, expenseId, expenseData) => {
+  const updateExpense = async (tripId, expenseId, expenseData) => {
     if (!currentUser) return null;
     try {
-      const updated = storageService.updateExpense(tripId, expenseId, expenseData, currentUser.id);
-      refreshTrips();
+      const updated = await storageService.updateExpense(tripId, expenseId, expenseData, currentUser.id);
+      await refreshTrips();
       showToast(`Updated expense: ${updated.category}.`);
       return updated;
     } catch (err) {
@@ -240,12 +255,12 @@ export function TripProvider({ children }) {
     }
   };
 
-  const deleteExpense = (tripId, expenseId) => {
+  const deleteExpense = async (tripId, expenseId) => {
     if (!currentUser) return false;
     try {
-      const success = storageService.deleteExpense(tripId, expenseId, currentUser.id);
+      const success = await storageService.deleteExpense(tripId, expenseId, currentUser.id);
       if (success) {
-        refreshTrips();
+        await refreshTrips();
         showToast('Expense removed from budget log.', 'info');
       }
       return success;
@@ -255,11 +270,11 @@ export function TripProvider({ children }) {
     }
   };
 
-  const setTripBudget = (tripId, totalBudget) => {
+  const setTripBudget = async (tripId, totalBudget, currency) => {
     if (!currentUser) return null;
     try {
-      const updated = storageService.setTripBudget(tripId, totalBudget, currentUser.id);
-      refreshTrips();
+      const updated = await storageService.setTripBudget(tripId, totalBudget, currency, currentUser.id);
+      await refreshTrips();
       showToast(`Trip budget updated to ${updated.currency} ${Number(totalBudget).toLocaleString()}!`);
       return updated;
     } catch (err) {

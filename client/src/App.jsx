@@ -22,12 +22,17 @@ function AppContent() {
 
   // Hash-based Public Share Viewer (#share/:token)
   useEffect(() => {
-    const handleHashChange = () => {
+    const handleHashChange = async () => {
       const hash = window.location.hash;
       if (hash && hash.startsWith('#share/')) {
         const token = hash.replace('#share/', '').trim();
-        const foundTrip = storageService.getTripByShareToken(token);
-        setSharedTrip(foundTrip || null);
+        try {
+          const foundTrip = await storageService.getTripByShareToken(token);
+          setSharedTrip(foundTrip || null);
+        } catch (err) {
+          console.warn('Error loading shared trip:', err);
+          setSharedTrip(null);
+        }
       } else {
         setSharedTrip(null);
       }

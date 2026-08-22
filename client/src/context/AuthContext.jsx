@@ -12,9 +12,13 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const initializeAuth = async () => {
       await storageService.init();
-      const session = storageService.getAuthSession();
-      if (session) {
-        setCurrentUser(session);
+      try {
+        const user = await storageService.fetchCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+        }
+      } catch (err) {
+        console.warn('Could not fetch current user on init:', err);
       }
       setLoading(false);
     };
@@ -58,6 +62,17 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      const updated = await storageService.updateUserProfile(profileData);
+      setCurrentUser(updated);
+      return updated;
+    } catch (err) {
+      setError(err.message || 'Failed to update profile.');
+      throw err;
+    }
+  };
+
   const logout = () => {
     storageService.clearAuthSession();
     setCurrentUser(null);
@@ -75,6 +90,7 @@ export function AuthProvider({ children }) {
         register,
         login,
         loginAsDemo,
+        updateProfile,
         logout,
         clearError
       }}
